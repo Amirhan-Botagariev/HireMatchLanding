@@ -1,3 +1,4 @@
+<!-- index.html (React + CDN, без Next.js) -->
 <!doctype html>
 <html lang="ru">
 <head>
@@ -5,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>HireMatch — Автоматизация откликов для соискателей</title>
   <meta name="description" content="ИИ анализирует резюме и автоматически отправляет персонализированные заявки на вакансии — для всех, кто ищет работу." />
+
+  <!-- Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -45,215 +48,216 @@
     .shake {animation: shake .3s ease-in-out;}
     @keyframes shake {0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
   </style>
+
+  <!-- Веб-аналитика Vercel для статических сайтов -->
+  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 
 <body class="bg-base-950 text-white antialiased">
-  <!-- Header -->
-  <header class="sticky top-0 z-40 border-b border-white/5 bg-base-950/70 backdrop-blur">
-    <div class="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
-      <a href="#top" class="text-xl font-extrabold tracking-tight">Hire<span class="text-brand-400">Match</span></a>
-      <nav class="hidden md:flex gap-6 text-sm text-white/70">
-        <a href="#how" class="hover:text-white">Как это работает</a>
-        <a href="#why" class="hover:text-white">Почему мы</a>
-        <a href="#cta" class="hover:text-white">Доступ</a>
-      </nav>
-      <a href="#cta" class="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/15">Получить доступ</a>
-    </div>
-  </header>
+  <div id="root"></div>
 
-  <!-- Hero -->
-  <section id="top" class="relative overflow-hidden">
-    <div class="stars" aria-hidden="true"></div>
-    <div class="mx-auto max-w-6xl px-4 pt-20 pb-24 md:pt-28 md:pb-32 relative">
-      <div class="max-w-3xl">
-        <h1 class="text-4xl md:text-6xl font-extrabold leading-tight tracking-tight">
-          Устаёшь тратить часы на отклики, <span class="text-brand-400">которые никто не читает?</span>
-        </h1>
-        <p class="mt-5 text-lg md:text-xl text-white/70">Твоё резюме теряется среди сотен других? Доверь рутину ИИ и получай больше интервью.</p>
-        <div class="mt-8 flex flex-col sm:flex-row gap-3">
-          <a href="#cta" class="inline-flex items-center justify-center rounded-full bg-brand-500 hover:bg-brand-400 px-6 py-3 font-semibold text-white transition glow">Получить ранний доступ</a>
-          <a href="#how" class="inline-flex items-center justify-center rounded-full border border-white/10 px-6 py-3 font-semibold text-white/90 hover:bg-white/5">Как это работает</a>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- React 18 из CDN + приложение -->
+  <script type="module">
+    import React, { useCallback, useEffect, useMemo, useRef, useState } from 'https://esm.sh/react@18';
+    import { createRoot } from 'https://esm.sh/react-dom@18/client';
 
-  <!-- How it works -->
-  <section id="how" class="relative">
-    <div class="mx-auto max-w-6xl px-4 py-16 md:py-20">
-      <h2 class="text-3xl md:text-4xl font-extrabold">HireMatch решает эту проблему</h2>
-      <p class="mt-2 text-white/70 max-w-2xl">Искусственный интеллект автоматизирует поиск работы для соискателей.</p>
+    function HireMatchApp(){
+      const [email, setEmail] = useState("");
+      const [error, setError] = useState(null);
+      const [submitting, setSubmitting] = useState(false);
+      const [btnText, setBtnText] = useState("Попробовать");
+      const [shake, setShake] = useState(false);
 
-      <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-brand-500/10">
-          <div class="size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4">
-            <span class="text-2xl">📄</span>
-          </div>
-          <h3 class="text-xl font-bold mb-1">Загрузи резюме</h3>
-          <p class="text-white/70">Просто загрузи своё резюме — мы проанализируем навыки и опыт и подберём подходящие вакансии.</p>
-        </div>
-        <div class="card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-brand-500/10">
-          <div class="size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4">
-            <span class="text-2xl">🤖</span>
-          </div>
-          <h3 class="text-xl font-bold mb-1">AI отправляет заявки</h3>
-          <p class="text-white/70">Алгоритм автоматически шлёт персонализированные отклики работодателям. Ты экономишь время и силы.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+      const formRef = useRef(null);
+      const emailRegex = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/, []);
 
-  <!-- Why -->
-  <section id="why" class="relative">
-    <div class="mx-auto max-w-6xl px-4 py-16 md:py-20">
-      <h2 class="text-3xl md:text-4xl font-extrabold">Почему HireMatch?</h2>
-      <p class="mt-2 text-white/70">Присоединись к соискателям, которые уже получают больше интервью</p>
+      const clearError = useCallback(() => setError(null), []);
+      const showError = useCallback(() => {
+        setError("Вы ввели некорректную почту");
+        setShake(true);
+        setTimeout(()=>setShake(false), 400);
+      }, []);
 
-      <div class="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-brand-500/10">
-          <div class="size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4"><span class="text-2xl">⏰</span></div>
-          <h3 class="text-lg font-bold mb-1">Экономь до 10 часов в неделю</h3>
-          <p class="text-white/70">Забудь о бесконечном скролле и шаблонных письмах — всё сделаем мы.</p>
-        </div>
-        <div class="card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-brand-500/10">
-          <div class="size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4"><span class="text-2xl">📈</span></div>
-          <h3 class="text-lg font-bold mb-1">Больше шансов получить ответ</h3>
-          <p class="text-white/70">Персонализация повышает конверсию откликов и ответы рекрутеров.</p>
-        </div>
-        <div class="card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-brand-500/10">
-          <div class="size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4"><span class="text-2xl">⚡️</span></div>
-          <h3 class="text-lg font-bold mb-1">Быстрее найдёшь работу</h3>
-          <p class="text-white/70">HireMatch работает 24/7, пока ты занимаешься своими делами.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA -->
-  <section id="cta" class="relative">
-    <div class="mx-auto max-w-6xl px-4 py-16 md:py-20">
-      <div class="rounded-3xl border border-white/10 bg-white/[.03] p-8 md:p-12 text-center">
-        <h2 class="text-3xl md:text-4xl font-extrabold">Готов попробовать <span class="text-brand-400">HireMatch</span>?</h2>
-        <p class="mt-2 text-white/70">Стань одним из первых, кто получит доступ к платформе, которая ускорит твой поиск работы.</p>
-
-        <form id="early-form" class="mx-auto mt-8 flex w-full max-w-xl flex-col sm:flex-row items-center gap-3" novalidate>
-          <input id="email-input" type="email" required name="email" placeholder="your-email@example.com"
-                 class="flex-1 rounded-full bg-white/5 px-5 py-3 outline-none ring-1 ring-inset ring-white/10 focus:ring-brand-400 transition" />
-          <button id="submit-btn" class="rounded-full bg-brand-500 px-6 py-3 font-semibold hover:bg-brand-400 transition">
-            Попробовать
-          </button>
-        </form>
-
-        <p id="error-msg" class="mt-3 text-sm text-red-400 hidden">Вы ввели некорректную почту</p>
-        <p class="mt-3 text-xs text-white/50">Никакого спама. Только уведомления о запуске и важные обновления.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="border-t border-white/5">
-    <div class="mx-auto max-w-6xl px-4 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
-      <a class="text-lg font-extrabold" href="#top">Hire<span class="text-brand-400">Match</span></a>
-      <nav class="flex gap-6 text-sm text-white/70">
-        <a href="#" class="hover:text-white">Политика конфиденциальности</a>
-        <a href="#" class="hover:text-white">Контакты</a>
-      </nav>
-      <p class="text-xs text-white/50">© 2025 HireMatch. All rights reserved.</p>
-    </div>
-  </footer>
-
-  <!-- Scripts -->
-  <script>
-    // Плавный скролл
-    document.querySelectorAll('a[href^="#"]').forEach(function(a){
-      a.addEventListener('click', function(e){
-        var href=a.getAttribute('href');
-        if(href && href.length>1){
-          var target=document.querySelector(href);
+      // Плавный скролл
+      const handleAnchorClick = useCallback((e) => {
+        const href = (e.currentTarget.getAttribute('href') || '').trim();
+        if (href.startsWith('#') && href.length > 1){
+          const target = document.querySelector(href);
           if(target){ e.preventDefault(); target.scrollIntoView({behavior:'smooth'}); }
         }
-      });
-    });
+      }, []);
 
-    // Селекторы
-    var form = document.getElementById('early-form');
-    var btn = document.getElementById('submit-btn');
-    var emailInput = document.getElementById('email-input');
-    var errorMsg = document.getElementById('error-msg');
+      // Трекинг источника
+      const buildTracking = useCallback(() => {
+        const qs = window.location.search || '';
+        return {
+          referrer: document.referrer || 'direct',
+          utm: qs,
+          userAgent: navigator.userAgent || '',
+          locale: navigator.language || '',
+          tzOffsetMin: new Date().getTimezoneOffset()
+        };
+      }, []);
 
-    // Ошибка русская + подёргивание
-    function showError(){
-      errorMsg.classList.remove('hidden');
-      emailInput.classList.add('ring-red-500');
-      form.classList.add('shake');
-      setTimeout(function(){ form.classList.remove('shake'); }, 400);
+      // Сабмит формы
+      const validateAndSubmit = useCallback(async () => {
+        const trimmed = email.trim();
+        if(!emailRegex.test(trimmed)) { showError(); return; }
+        clearError();
+        setSubmitting(true); setBtnText('Отправка…');
+
+        const payload = Object.assign({ email: trimmed }, buildTracking());
+        try{
+          await fetch('/api/subscribe', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+          });
+          setBtnText('Готово!'); setEmail('');
+        }catch(err){
+          console.error('Network error', err);
+          setBtnText('Готово!');
+        }finally{
+          setTimeout(()=>{ setSubmitting(false); setBtnText('Попробовать'); }, 2000);
+        }
+      }, [email, emailRegex, clearError, showError, buildTracking]);
+
+      const onSubmit = useCallback((e)=>{ e.preventDefault(); validateAndSubmit(); }, [validateAndSubmit]);
+
+      // Мини-тесты (?test=1)
+      useEffect(() => {
+        if(location.search.indexOf('test=1') === -1) return;
+        const tests = {
+          'user@example.com': true,
+          'user.name+tag@sub.domain.co': true,
+          '@example.com': false,
+          'user@': false,
+          'user@domain': false,
+          'user domain.com': false,
+          '': false
+        };
+        let pass = true; let i=0;
+        for(const k in tests){ i++; const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(k)===tests[k]; pass=pass&&ok; console.log('Test', i, k, ok?'✅':'❌'); }
+        console.log('All tests passed?', pass);
+        console.log('Tracking sample:', buildTracking());
+      }, [buildTracking]);
+
+      // Разметка
+      return React.createElement(React.Fragment, null,
+        // Header
+        React.createElement('header', { className:'sticky top-0 z-40 border-b border-white/5 bg-base-950/70 backdrop-blur' },
+          React.createElement('div', { className:'mx-auto max-w-7xl px-4 py-3 flex items-center justify-between' },
+            React.createElement('a', { href:'#top', onClick:handleAnchorClick, className:'text-xl font-extrabold tracking-tight' },
+              'Hire', React.createElement('span', { className:'text-brand-400' }, 'Match')
+            ),
+            React.createElement('nav', { className:'hidden md:flex gap-6 text-sm text-white/70' },
+              React.createElement('a', { href:'#how', onClick:handleAnchorClick, className:'hover:text-white' }, 'Как это работает'),
+              React.createElement('a', { href:'#why', onClick:handleAnchorClick, className:'hover:text-white' }, 'Почему мы'),
+              React.createElement('a', { href:'#cta', onClick:handleAnchorClick, className:'hover:text-white' }, 'Доступ')
+            ),
+            React.createElement('a', { href:'#cta', onClick:handleAnchorClick, className:'rounded-full bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/15' }, 'Получить доступ')
+          )
+        ),
+
+        // Hero
+        React.createElement('section', { id:'top', className:'relative overflow-hidden' },
+          React.createElement('div', { className:'stars', 'aria-hidden':'true' }),
+          React.createElement('div', { className:'mx-auto max-w-6xl px-4 pt-20 pb-24 md:pt-28 md:pb-32 relative' },
+            React.createElement('div', { className:'max-w-3xl' },
+              React.createElement('h1', { className:'text-4xl md:text-6xl font-extrabold leading-tight tracking-tight' },
+                'Устаёшь тратить часы на отклики, ', React.createElement('span', { className:'text-brand-400' }, 'которые никто не читает?')
+              ),
+              React.createElement('p', { className:'mt-5 text-lg md:text-xl text-white/70' }, 'Твоё резюме теряется среди сотен других? Доверь рутину ИИ и получай больше интервью.'),
+              React.createElement('div', { className:'mt-8 flex flex-col sm:flex-row gap-3' },
+                React.createElement('a', { href:'#cta', onClick:handleAnchorClick, className:'inline-flex items-center justify-center rounded-full bg-brand-500 hover:bg-brand-400 px-6 py-3 font-semibold text-white transition glow' }, 'Получить ранний доступ'),
+                React.createElement('a', { href:'#how', onClick:handleAnchorClick, className:'inline-flex items-center justify-center rounded-full border border-white/10 px-6 py-3 font-semibold text-white/90 hover:bg-white/5' }, 'Как это работает')
+              )
+            )
+          )
+        ),
+
+        // How
+        React.createElement('section', { id:'how', className:'relative' },
+          React.createElement('div', { className:'mx-auto max-w-6xl px-4 py-16 md:py-20' },
+            React.createElement('h2', { className:'text-3xl md:text-4xl font-extrabold' }, 'HireMatch решает эту проблему'),
+            React.createElement('p', { className:'mt-2 text-white/70 max-w-2xl' }, 'Искусственный интеллект автоматизирует поиск работы для соискателей.'),
+            React.createElement('div', { className:'mt-10 grid grid-cols-1 md:grid-cols-2 gap-6' },
+              React.createElement('div', { className:'card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-brand-500/10' },
+                React.createElement('div', { className:'size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4' }, React.createElement('span', { className:'text-2xl' }, '📄')),
+                React.createElement('h3', { className:'text-xl font-bold mb-1' }, 'Загрузи резюме'),
+                React.createElement('p', { className:'text-white/70' }, 'Просто загрузи своё резюме — мы проанализируем навыки и опыт и подберём подходящие вакансии.')
+              ),
+              React.createElement('div', { className:'card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-brand-500/10' },
+                React.createElement('div', { className:'size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4' }, React.createElement('span', { className:'text-2xl' }, '🤖')),
+                React.createElement('h3', { className:'text-xl font-bold mb-1' }, 'AI отправляет заявки'),
+                React.createElement('p', { className:'text-white/70' }, 'Алгоритм автоматически шлёт персонализированные отклики работодателям. Ты экономишь время и силы.')
+              )
+            )
+          )
+        ),
+
+        // Why
+        React.createElement('section', { id:'why', className:'relative' },
+          React.createElement('div', { className:'mx-auto max-w-6xl px-4 py-16 md:py-20' },
+            React.createElement('h2', { className:'text-3xl md:text-4xl font-extrabold' }, 'Почему HireMatch?'),
+            React.createElement('p', { className:'mt-2 text-white/70' }, 'Присоединись к соискателям, которые уже получают больше интервью'),
+            React.createElement('div', { className:'mt-10 grid grid-cols-1 md:grid-cols-3 gap-6' },
+              React.createElement('div', { className:'card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-brand-500/10' },
+                React.createElement('div', { className:'size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4' }, React.createElement('span', { className:'text-2xl' }, '⏰')),
+                React.createElement('h3', { className:'text-lg font-bold mb-1' }, 'Экономь до 10 часов в неделю'),
+                React.createElement('p', { className:'text-white/70' }, 'Забудь о бесконечном скролле и шаблонных письмах — всё сделаем мы.')
+              ),
+              React.createElement('div', { className:'card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-brand-500/10' },
+                React.createElement('div', { className:'size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4' }, React.createElement('span', { className:'text-2xl' }, '📈')),
+                React.createElement('h3', { className:'text-lg font-bold mb-1' }, 'Больше шансов получить ответ'),
+                React.createElement('p', { className:'text-white/70' }, 'Персонализация повышает конверсию откликов и ответы рекрутеров.')
+              ),
+              React.createElement('div', { className:'card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-brand-500/10' },
+                React.createElement('div', { className:'size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4' }, React.createElement('span', { className:'text-2xl' }, '⚡️')),
+                React.createElement('h3', { className:'text-lg font-bold mb-1' }, 'Быстрее найдёшь работу'),
+                React.createElement('p', { className:'text-white/70' }, 'HireMatch работает 24/7, пока ты занимаешься своими делами.')
+              )
+            )
+          )
+        ),
+
+        // CTA
+        React.createElement('section', { id:'cta', className:'relative' },
+          React.createElement('div', { className:'mx-auto max-w-6xl px-4 py-16 md:py-20' },
+            React.createElement('div', { className:`rounded-3xl border border-white/10 bg-white/[.03] p-8 md:p-12 text-center ${shake ? 'shake' : ''}`, ref: formRef },
+              React.createElement('h2', { className:'text-3xl md:text-4xl font-extrabold' }, 'Готов попробовать ', React.createElement('span', { className:'text-brand-400' }, 'HireMatch'), '?'),
+              React.createElement('p', { className:'mt-2 text-white/70' }, 'Стань одним из первых, кто получит доступ к платформе, которая ускорит твой поиск работы.'),
+
+              React.createElement('form', { className:'mx-auto mt-8 flex w-full max-w-xl flex-col sm:flex-row items-center gap-3', noValidate:true, onSubmit:onSubmit },
+                React.createElement('input', {
+                  type:'email', required:true, name:'email', placeholder:'your-email@example.com', value:email,
+                  onChange:(e)=>{ setEmail(e.target.value); if(error) clearError(); },
+                  className:`flex-1 rounded-full bg-white/5 px-5 py-3 outline-none ring-1 ring-inset ${error ? 'ring-red-500' : 'ring-white/10'} focus:ring-brand-400 transition`
+                }),
+                React.createElement('button', { type:'submit', disabled:submitting, className:'rounded-full bg-brand-500 px-6 py-3 font-semibold hover:bg-brand-400 transition disabled:opacity-60 disabled:cursor-not-allowed' }, btnText)
+              ),
+
+              error && React.createElement('p', { className:'mt-3 text-sm text-red-400' }, error),
+              React.createElement('p', { className:'mt-3 text-xs text-white/50' }, 'Никакого спама. Только уведомления о запуске и важные обновления.')
+            )
+          )
+        ),
+
+        // Footer
+        React.createElement('footer', { className:'border-t border-white/5' },
+          React.createElement('div', { className:'mx-auto max-w-6xl px-4 py-10 flex flex-col md:flex-row items-center justify-between gap-4' },
+            React.createElement('a', { className:'text-lg font-extrabold', href:'#top', onClick:handleAnchorClick }, 'Hire', React.createElement('span', { className:'text-brand-400' }, 'Match')),
+            React.createElement('nav', { className:'flex gap-6 text-sm text-white/70' },
+              React.createElement('a', { href:'#', className:'hover:text-white', onClick:(e)=>e.preventDefault() }, 'Политика конфиденциальности'),
+              React.createElement('a', { href:'#', className:'hover:text-white', onClick:(e)=>e.preventDefault() }, 'Контакты')
+            ),
+            React.createElement('p', { className:'text-xs text-white/50' }, '© 2025 HireMatch. All rights reserved.')
+          )
+        )
+      );
     }
-    function clearError(){
-      errorMsg.classList.add('hidden');
-      emailInput.classList.remove('ring-red-500');
-    }
 
-    // Глушим дефолтные английские подсказки браузера
-    form.addEventListener('submit', function(e){ e.preventDefault(); validateAndSubmit(); });
-    emailInput.addEventListener('invalid', function(e){ e.preventDefault(); showError(); });
-    emailInput.addEventListener('input', function(){ clearError(); });
-
-    // Трекинг источника
-    function buildTracking(){
-      var qs = window.location.search || '';
-      return {
-        referrer: document.referrer || 'direct',
-        utm: qs,
-        userAgent: navigator.userAgent || '',
-        locale: navigator.language || '',
-        tzOffsetMin: new Date().getTimezoneOffset()
-      };
-    }
-
-    // Сабмит
-    async function validateAndSubmit(){
-      var email = emailInput.value.trim();
-      var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if(!emailRegex.test(email)){ showError(); return; }
-      clearError();
-
-      btn.disabled = true; btn.textContent = 'Отправка…';
-
-      var payload = Object.assign({ email: email }, buildTracking());
-
-      try{
-        var res = await fetch('/api/subscribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        // Даже если сервер ответил не 200 — UX завершаем одинаково
-        btn.textContent = 'Готово!';
-        form.reset();
-      }catch(err){
-        console.error('Network error', err);
-        btn.textContent = 'Готово!';
-      }finally{
-        setTimeout(function(){ btn.disabled=false; btn.textContent='Попробовать'; }, 2000);
-      }
-    }
-
-    // Мини-тесты (открой ?test=1)
-    (function(){
-      if(location.search.indexOf('test=1') === -1) return;
-      var tests = {
-        'user@example.com': true,
-        'user.name+tag@sub.domain.co': true,
-        '@example.com': false,
-        'user@': false,
-        'user@domain': false,
-        'user domain.com': false,
-        '': false
-      };
-      var pass=true; var i=0; for(var k in tests){ i++; var ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(k)===tests[k]; pass=pass&&ok; console.log('Test', i, k, ok?'✅':'❌'); }
-      console.log('All tests passed?', pass);
-      console.log('Tracking sample:', buildTracking());
-    })();
+    createRoot(document.getElementById('root')).render(React.createElement(HireMatchApp));
   </script>
 </body>
 </html>
