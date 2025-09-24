@@ -4,36 +4,42 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>HireMatch — Автоматизация откликов для соискателей</title>
-  <meta name="description" content="ИИ, который анализирует резюме и автоматически отправляет персонализированные заявки на вакансии — для всех, кто ищет работу." />
+  <meta name="description" content="ИИ анализирует резюме и автоматически отправляет персонализированные заявки на вакансии — для всех, кто ищет работу." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
+    /* Кастомные цвета + шрифт */
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
+          fontFamily: { sans: ['Inter','ui-sans-serif','system-ui','-apple-system','Segoe UI','Roboto','Helvetica','Arial'] },
           colors: {
-            base: {
-              50:'#f5f7fb',100:'#e8edf6',200:'#cfd9ec',300:'#a9b9d9',400:'#7f95c1',500:'#5c73a8',600:'#475a86',700:'#39486a',800:'#2e3a55',900:'#232c41',950:'#0f1220'
-            },
-            brand: {
-              50:'#eef5ff',100:'#d9e9ff',200:'#b0d0ff',300:'#86b7ff',400:'#5d9eff',500:'#2f84ff',600:'#1167e6',700:'#0d51b4',800:'#093a82',900:'#062551',950:'#041a39'
-            }
+            base: { 50:'#f5f7fb',100:'#e8edf6',200:'#cfd9ec',300:'#a9b9d9',400:'#7f95c1',500:'#5c73a8',600:'#475a86',700:'#39486a',800:'#2e3a55',900:'#232c41',950:'#0f1220' },
+            brand:{ 50:'#eef5ff',100:'#d9e9ff',200:'#b0d0ff',300:'#86b7ff',400:'#5d9eff',500:'#2f84ff',600:'#1167e6',700:'#0d51b4',800:'#093a82',900:'#062551',950:'#041a39' }
           }
         }
       }
     }
   </script>
+
   <style>
-    .stars{position:absolute;inset:0;background:radial-gradient(1000px 600px at 80% 20%,rgba(47,132,255,.12),transparent 70%),radial-gradient(800px 500px at 20% 10%,rgba(47,132,255,.08),transparent 70%),radial-gradient(700px 400px at 50% 0%,rgba(255,255,255,.06),transparent 70%);}
+    body{font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial}
+    .stars{position:absolute;inset:0;background:
+      radial-gradient(1000px 600px at 80% 20%,rgba(47,132,255,.12),transparent 70%),
+      radial-gradient(800px 500px at 20% 10%,rgba(47,132,255,.08),transparent 70%),
+      radial-gradient(700px 400px at 50% 0%,rgba(255,255,255,.06),transparent 70%);
+      pointer-events:none;}
     .glow{box-shadow:0 0 0 8px rgba(47,132,255,.15);}
     .card{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.08);}
-    .shake {animation: shake 0.3s ease-in-out;}
-    @keyframes shake {0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+    .shake {animation: shake .3s ease-in-out;}
+    @keyframes shake {0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
   </style>
 </head>
+
 <body class="bg-base-950 text-white antialiased">
   <!-- Header -->
   <header class="sticky top-0 z-40 border-b border-white/5 bg-base-950/70 backdrop-blur">
@@ -72,51 +78,45 @@
       <p class="mt-2 text-white/70 max-w-2xl">Искусственный интеллект автоматизирует поиск работы для соискателей.</p>
 
       <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl hover:shadow-brand-500/10">
+        <div class="card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-brand-500/10">
           <div class="size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4">
-            <span class="text-2xl">🌙</span>
+            <span class="text-2xl">📄</span>
           </div>
           <h3 class="text-xl font-bold mb-1">Загрузи резюме</h3>
-          <p class="text-white/70">Просто загрузи своё резюме, и наш AI проанализирует твои навыки и опыт, чтобы найти самые подходящие вакансии именно для тебя.</p>
+          <p class="text-white/70">Просто загрузи своё резюме — мы проанализируем навыки и опыт и подберём подходящие вакансии.</p>
         </div>
-        <div class="card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl hover:shadow-brand-500/10">
+        <div class="card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-brand-500/10">
           <div class="size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4">
-            <span class="text-2xl">🚀</span>
+            <span class="text-2xl">🤖</span>
           </div>
           <h3 class="text-xl font-bold mb-1">AI отправляет заявки</h3>
-          <p class="text-white/70">Наш умный алгоритм автоматически отправляет персонализированные заявки работодателям. Ты экономишь время и силы на поиск работы.</p>
+          <p class="text-white/70">Алгоритм автоматически шлёт персонализированные отклики работодателям. Ты экономишь время и силы.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Why HireMatch -->
+  <!-- Why -->
   <section id="why" class="relative">
     <div class="mx-auto max-w-6xl px-4 py-16 md:py-20">
       <h2 class="text-3xl md:text-4xl font-extrabold">Почему HireMatch?</h2>
-      <p class="mt-2 text-white/70">Присоединись к разработчикам, которые уже получают больше интервью</p>
+      <p class="mt-2 text-white/70">Присоединись к соискателям, которые уже получают больше интервью</p>
 
       <div class="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl hover:shadow-brand-500/10">
-          <div class="size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4">
-            <span class="text-2xl">⏰</span>
-          </div>
+        <div class="card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-brand-500/10">
+          <div class="size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4"><span class="text-2xl">⏰</span></div>
           <h3 class="text-lg font-bold mb-1">Экономь до 10 часов в неделю</h3>
-          <p class="text-white/70">Забудь о бесконечном скролле вакансий и написании сопроводительных писем. HireMatch делает всё за тебя.</p>
+          <p class="text-white/70">Забудь о бесконечном скролле и шаблонных письмах — всё сделаем мы.</p>
         </div>
-        <div class="card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl hover:shadow-brand-500/10">
-          <div class="size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4">
-            <span class="text-2xl">📈</span>
-          </div>
+        <div class="card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-brand-500/10">
+          <div class="size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4"><span class="text-2xl">📈</span></div>
           <h3 class="text-lg font-bold mb-1">Больше шансов получить ответ</h3>
-          <p class="text-white/70">Персонализированные заявки от AI показывают работодателям, что ты идеально подходишь для их вакансии.</p>
+          <p class="text-white/70">Персонализация повышает конверсию откликов и ответы рекрутеров.</p>
         </div>
-        <div class="card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl hover:shadow-brand-500/10">
-          <div class="size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4">
-            <span class="text-2xl">⚡️</span>
-          </div>
+        <div class="card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-brand-500/10">
+          <div class="size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4"><span class="text-2xl">⚡️</span></div>
           <h3 class="text-lg font-bold mb-1">Быстрее найдёшь работу</h3>
-          <p class="text-white/70">Пока ты занимаешься своими делами, HireMatch работает 24/7, чтобы найти тебе лучшие предложения.</p>
+          <p class="text-white/70">HireMatch работает 24/7, пока ты занимаешься своими делами.</p>
         </div>
       </div>
     </div>
@@ -127,11 +127,16 @@
     <div class="mx-auto max-w-6xl px-4 py-16 md:py-20">
       <div class="rounded-3xl border border-white/10 bg-white/[.03] p-8 md:p-12 text-center">
         <h2 class="text-3xl md:text-4xl font-extrabold">Готов попробовать <span class="text-brand-400">HireMatch</span>?</h2>
-        <p class="mt-2 text-white/70">Стань одним из первых, кто получит доступ к платформе, которая изменит твой поиск работы</p>
-        <form id="early-form" class="mx-auto mt-8 flex w-full max-w-xl flex-col sm:flex-row items-center gap-3" onsubmit="return false">
-          <input id="email-input" type="email" required name="email" placeholder="your-email@example.com" class="flex-1 rounded-full bg-white/5 px-5 py-3 outline-none ring-1 ring-inset ring-white/10 focus:ring-brand-400 transition" />
-          <button id="submit-btn" class="rounded-full bg-brand-500 px-6 py-3 font-semibold hover:bg-brand-400 transition">Попробовать</button>
+        <p class="mt-2 text-white/70">Стань одним из первых, кто получит доступ к платформе, которая ускорит твой поиск работы.</p>
+
+        <form id="early-form" class="mx-auto mt-8 flex w-full max-w-xl flex-col sm:flex-row items-center gap-3" novalidate>
+          <input id="email-input" type="email" required name="email" placeholder="your-email@example.com"
+                 class="flex-1 rounded-full bg-white/5 px-5 py-3 outline-none ring-1 ring-inset ring-white/10 focus:ring-brand-400 transition" />
+          <button id="submit-btn" class="rounded-full bg-brand-500 px-6 py-3 font-semibold hover:bg-brand-400 transition">
+            Попробовать
+          </button>
         </form>
+
         <p id="error-msg" class="mt-3 text-sm text-red-400 hidden">Вы ввели некорректную почту</p>
         <p class="mt-3 text-xs text-white/50">Никакого спама. Только уведомления о запуске и важные обновления.</p>
       </div>
@@ -150,34 +155,98 @@
     </div>
   </footer>
 
+  <!-- Scripts -->
   <script>
-    document.querySelectorAll('a[href^="#"]').forEach(a=>{
-      a.addEventListener('click',e=>{const href=a.getAttribute('href');if(href.length>1){e.preventDefault();document.querySelector(href)?.scrollIntoView({behavior:'smooth'});}})
-    })
+    // Плавный скролл
+    document.querySelectorAll('a[href^="#"]').forEach(function(a){
+      a.addEventListener('click', function(e){
+        var href=a.getAttribute('href');
+        if(href && href.length>1){
+          var target=document.querySelector(href);
+          if(target){ e.preventDefault(); target.scrollIntoView({behavior:'smooth'}); }
+        }
+      });
+    });
 
-    const form = document.getElementById('early-form');
-    const btn = document.getElementById('submit-btn');
-    const emailInput = document.getElementById('email-input');
-    const errorMsg = document.getElementById('error-msg');
+    // Селекторы
+    var form = document.getElementById('early-form');
+    var btn = document.getElementById('submit-btn');
+    var emailInput = document.getElementById('email-input');
+    var errorMsg = document.getElementById('error-msg');
 
-    form.addEventListener('submit', async () => {
-      const email = emailInput.value.trim();
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        errorMsg.classList.remove('hidden');
-        emailInput.classList.add('ring-red-500');
-        form.classList.add('shake');
-        setTimeout(()=>form.classList.remove('shake'),400);
-        return;
-      }
+    // Ошибка русская + подёргивание
+    function showError(){
+      errorMsg.classList.remove('hidden');
+      emailInput.classList.add('ring-red-500');
+      form.classList.add('shake');
+      setTimeout(function(){ form.classList.remove('shake'); }, 400);
+    }
+    function clearError(){
       errorMsg.classList.add('hidden');
       emailInput.classList.remove('ring-red-500');
+    }
+
+    // Глушим дефолтные английские подсказки браузера
+    form.addEventListener('submit', function(e){ e.preventDefault(); validateAndSubmit(); });
+    emailInput.addEventListener('invalid', function(e){ e.preventDefault(); showError(); });
+    emailInput.addEventListener('input', function(){ clearError(); });
+
+    // Трекинг источника
+    function buildTracking(){
+      var qs = window.location.search || '';
+      return {
+        referrer: document.referrer || 'direct',
+        utm: qs,
+        userAgent: navigator.userAgent || '',
+        locale: navigator.language || '',
+        tzOffsetMin: new Date().getTimezoneOffset()
+      };
+    }
+
+    // Сабмит
+    async function validateAndSubmit(){
+      var email = emailInput.value.trim();
+      var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if(!emailRegex.test(email)){ showError(); return; }
+      clearError();
+
       btn.disabled = true; btn.textContent = 'Отправка…';
-      await new Promise(r=>setTimeout(r, 900));
-      btn.textContent = 'Готово!';
-      form.reset();
-      setTimeout(()=>{btn.disabled=false;btn.textContent='Попробовать';}, 2000)
-    });
+
+      var payload = Object.assign({ email: email }, buildTracking());
+
+      try{
+        var res = await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        // Даже если сервер ответил не 200 — UX завершаем одинаково
+        btn.textContent = 'Готово!';
+        form.reset();
+      }catch(err){
+        console.error('Network error', err);
+        btn.textContent = 'Готово!';
+      }finally{
+        setTimeout(function(){ btn.disabled=false; btn.textContent='Попробовать'; }, 2000);
+      }
+    }
+
+    // Мини-тесты (открой ?test=1)
+    (function(){
+      if(location.search.indexOf('test=1') === -1) return;
+      var tests = {
+        'user@example.com': true,
+        'user.name+tag@sub.domain.co': true,
+        '@example.com': false,
+        'user@': false,
+        'user@domain': false,
+        'user domain.com': false,
+        '': false
+      };
+      var pass=true; var i=0; for(var k in tests){ i++; var ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(k)===tests[k]; pass=pass&&ok; console.log('Test', i, k, ok?'✅':'❌'); }
+      console.log('All tests passed?', pass);
+      console.log('Tracking sample:', buildTracking());
+    })();
   </script>
 </body>
 </html>
