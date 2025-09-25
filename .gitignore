@@ -1,6 +1,21 @@
-# Include your project-specific ignores in this file
-# Read about how to use .gitignore: https://help.github.com/articles/ignoring-files
-# Useful .gitignore templates: https://github.com/github/gitignore
-node_modules
-dist
-.cache
+cat > .gitignore << 'EOF'
+# deps / builds
+node_modules/
+.next/
+dist/
+build/
+.vercel/
+.DS_Store
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# env
+.env
+.env.*
+EOF
+git add .gitignore
+git commit -m "chore: add .gitignore"
