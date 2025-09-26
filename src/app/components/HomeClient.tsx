@@ -53,6 +53,7 @@ export default function HomeClient({
   const [announce, setAnnounce] = useState("");
   const [navOpen, setNavOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
+
   const formRef = useRef<HTMLDivElement | null>(null);
   const emailInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -238,7 +239,7 @@ export default function HomeClient({
             <a
               href="#top"
               onClick={handleAnchorClick}
-              className="text-lg font-extrabold tracking-tight whitespace-nowrap sm:text-xl"
+              className="brand-nowrap text-lg font-extrabold tracking-tight sm:text-xl"
             >
               Hire<span className="text-brand-400">Match</span>
             </a>
@@ -460,7 +461,12 @@ export default function HomeClient({
             >
               <h2 className="text-3xl md:text-4xl font-extrabold">
                 <AnimatedText text={dict.cta.h2a} by="words" />
-                <AnimatedText text={dict.cta.h2b} by="chars" className="text-brand-400" delay={0.1} />
+                <AnimatedText
+                  text={dict.cta.h2b}
+                  by="chars"
+                  className="brand-nowrap text-brand-400"
+                  delay={0.1}
+                />
                 <AnimatedText text={dict.cta.h2c} by="chars" delay={0.15} />
               </h2>
 
@@ -519,7 +525,7 @@ export default function HomeClient({
           viewport={{ once: true, amount: 0.2 }}
         >
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-4 py-10 text-center sm:px-6 md:flex-row md:text-left lg:px-8">
-            <a className="text-lg font-extrabold" href="#top" onClick={handleAnchorClick}>
+            <a className="brand-nowrap text-lg font-extrabold" href="#top" onClick={handleAnchorClick}>
               Hire<span className="text-brand-400">Match</span>
             </a>
             <nav className="flex flex-col gap-2 text-sm text-white/70 sm:flex-row sm:gap-6">
