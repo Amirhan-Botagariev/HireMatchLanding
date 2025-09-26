@@ -1,11 +1,18 @@
-// src/app/layout.tsx
 import type { Metadata, Viewport } from "next";
-import "./globals.css";
+import "../globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Inter } from "next/font/google";
+import { locales, type Locale } from "@/app/i18n/config";
+import React from "react";
+
+export const dynamicParams = false;
 
 const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-inter" });
+
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
 
 export const metadata: Metadata = {
   title: "HireMatch — Автоматизация откликов для соискателей",
@@ -18,17 +25,21 @@ export const metadata: Metadata = {
       { url: "/favicon.ico" }
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
-    other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#2f84ff" }]
-  }
+    other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#2f84ff" }],
+  },
 };
 
-export const viewport: Viewport = {
-  themeColor: "#0f1220",
-};
+export const viewport: Viewport = { themeColor: "#0f1220" };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function LocaleLayout({
+  params,
+  children,
+}: {
+  params: { locale: Locale };
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="ru" className={inter.variable}>
+    <html lang={params.locale} className={inter.variable}>
       <body className="bg-base-950 text-white antialiased">
         {children}
         <Analytics />

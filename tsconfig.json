@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "baseUrl": "src",
+    "paths": { "@/*": ["*"] },
     "target": "ES2022",
     "lib": [
       "ES2022",
@@ -22,11 +24,6 @@
         "name": "next"
       }
     ],
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    },
     "incremental": true
   },
   "include": [
