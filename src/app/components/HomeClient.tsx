@@ -53,8 +53,6 @@ export default function HomeClient({
   const [announce, setAnnounce] = useState("");
   const [navOpen, setNavOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
-
-  const [activeSection, setActiveSection] = useState<string>("");
   const formRef = useRef<HTMLDivElement | null>(null);
   const emailInputRef = useRef<HTMLInputElement | null>(null);
 
