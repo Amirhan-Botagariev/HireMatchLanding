@@ -31,8 +31,19 @@
 }
 
 /* Глобальные */
-html { font-size: 18px; }
+html { font-size: clamp(16px, 1.1vw + 14px, 18px); }
 body { font-family: var(--font-sans); }
+
+.brand-nowrap {
+  display: inline-flex;
+  align-items: baseline;
+  white-space: nowrap;
+  gap: 0;
+}
+
+.brand-nowrap > * {
+  white-space: inherit;
+}
 
 /* Декор */
 .stars{
