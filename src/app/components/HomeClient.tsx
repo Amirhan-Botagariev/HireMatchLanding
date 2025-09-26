@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { motion, Variants } from "framer-motion";
+import { AnimatePresence, motion, Variants } from "framer-motion";
 import AnimatedText from "@/app/components/AnimatedText";
 import PageTransitions from "@/app/components/PageTransitions";
 import LanguageSwitcher from "@/app/components/LanguageSwitcher";
@@ -51,6 +51,8 @@ export default function HomeClient({
   const [btnText, setBtnText] = useState(dict.cta.submit);
   const [shake, setShake] = useState(false);
   const [announce, setAnnounce] = useState("");
+  const [navOpen, setNavOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>("");
 
   const formRef = useRef<HTMLDivElement | null>(null);
   const emailInputRef = useRef<HTMLInputElement | null>(null);
@@ -70,16 +72,23 @@ export default function HomeClient({
     [dict.cta.error]
   );
 
-  const handleAnchorClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
-    const href = (e.currentTarget.getAttribute("href") || "").trim();
-    if (href.startsWith("#") && href.length > 1) {
-      const target = document.querySelector(href);
-      if (target) {
-        e.preventDefault();
-        (target as HTMLElement).scrollIntoView({ behavior: "smooth" });
+  const closeNav = useCallback(() => setNavOpen(false), []);
+
+  const handleAnchorClick = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>) => {
+      const href = (e.currentTarget.getAttribute("href") || "").trim();
+      if (href.startsWith("#") && href.length > 1) {
+        const target = document.querySelector(href);
+        if (target) {
+          e.preventDefault();
+          setActiveSection(href.slice(1));
+          (target as HTMLElement).scrollIntoView({ behavior: "smooth" });
+          closeNav();
+        }
       }
-    }
-  }, []);
+    },
+    [closeNav]
+  );
 
   const buildTracking = useCallback(() => {
     const qs = typeof window !== "undefined" ? window.location.search : "";
@@ -138,56 +147,227 @@ export default function HomeClient({
     }
   }, [error]);
 
+  useEffect(() => {
+    if (!navOpen) {
+      return;
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeNav();
+      }
+    };
+    const originalOverflow = document.body.style.overflow;
+    document.addEventListener("keydown", onKeyDown);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [navOpen, closeNav]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        closeNav();
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [closeNav]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const ids = ["how", "why", "cta"] as const;
+    const elements = ids
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => !!el);
+
+    if (!elements.length) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.target.getBoundingClientRect().top - b.target.getBoundingClientRect().top);
+
+        if (visible.length) {
+          setActiveSection(visible[0].target.id);
+          return;
+        }
+
+        const scrollY = window.scrollY;
+        let current: string | null = null;
+        for (const el of elements) {
+          if (scrollY >= el.offsetTop - 160) {
+            current = el.id;
+          }
+        }
+        setActiveSection(current ?? "");
+      },
+      { threshold: 0.4 }
+    );
+
+    elements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
+  const getNavLinkClass = useCallback(
+    (id: "how" | "why" | "cta") => {
+      const active = activeSection === id;
+      const base =
+        "rounded-2xl border border-white/10 bg-white/[.04] px-5 py-4 text-lg font-semibold text-white/90 transition hover:bg-white/[.08]";
+      if (!active) {
+        return base;
+      }
+      return "rounded-2xl border border-brand-300 bg-brand-100 px-5 py-4 text-lg font-semibold text-brand-900 transition hover:bg-brand-100/90";
+    },
+    [activeSection]
+  );
+
   return (
     <PageTransitions locale={locale}>
       <main suppressHydrationWarning>
         {/* Header */}
         <motion.header className="sticky top-0 z-40 border-b border-white/5 bg-base-950/70 backdrop-blur">
-        <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
-          <a href="#top" onClick={handleAnchorClick} className="text-xl font-extrabold tracking-tight">
-            Hire<span className="text-brand-400">Match</span>
-          </a>
-
-          {/* меню — видно с md и шире */}
-          <nav className="hidden md:flex gap-6 text-sm text-white/70">
-            <a href="#how" onClick={handleAnchorClick} className="hover:text-white">{dict.nav.how}</a>
-            <a href="#why" onClick={handleAnchorClick} className="hover:text-white">{dict.nav.why}</a>
-            <a href="#cta" onClick={handleAnchorClick} className="hover:text-white">{dict.nav.access}</a>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <LanguageSwitcher locale={locale} />
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
             <a
-              href="#cta"
+              href="#top"
               onClick={handleAnchorClick}
-              className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/15"
+              className="text-lg font-extrabold tracking-tight sm:text-xl"
             >
-              {dict.ctaBtn}
+              Hire<span className="text-brand-400">Match</span>
             </a>
+
+            <nav className="hidden items-center gap-6 text-sm text-white/70 md:flex">
+              <a href="#how" onClick={handleAnchorClick} className="transition hover:text-white">
+                {dict.nav.how}
+              </a>
+              <a href="#why" onClick={handleAnchorClick} className="transition hover:text-white">
+                {dict.nav.why}
+              </a>
+              <a href="#cta" onClick={handleAnchorClick} className="transition hover:text-white">
+                {dict.nav.access}
+              </a>
+            </nav>
+
+            <div className="flex items-center gap-3">
+              <LanguageSwitcher locale={locale} />
+              <a
+                href="#cta"
+                onClick={handleAnchorClick}
+                className="hidden rounded-full bg-white/10 px-4 py-2 text-sm font-semibold transition hover:bg-white/15 sm:inline-flex"
+              >
+                {dict.ctaBtn}
+              </a>
+              <button
+                type="button"
+                onClick={() => setNavOpen((prev) => !prev)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white transition hover:bg-white/10 md:hidden"
+                aria-expanded={navOpen}
+                aria-label="Toggle navigation"
+              >
+                <span className="sr-only">Toggle navigation</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  className="h-5 w-5"
+                >
+                  {navOpen ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 7.5h16.5M3.75 12h16.5M3.75 16.5h16.5" />
+                  )}
+                </svg>
+              </button>
+            </div>
           </div>
-        </div>
-      </motion.header>
+        </motion.header>
+
+        <AnimatePresence>
+          {navOpen && (
+            <motion.div
+              className="fixed inset-0 z-30 bg-base-950/95 backdrop-blur-sm md:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.nav
+                className="mx-auto mt-20 flex w-full max-w-sm flex-col gap-4 px-6"
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -20, opacity: 0 }}
+              >
+                <a
+                  href="#how"
+                  onClick={handleAnchorClick}
+                  className={getNavLinkClass("how")}
+                >
+                  {dict.nav.how}
+                </a>
+                <a
+                  href="#why"
+                  onClick={handleAnchorClick}
+                  className={getNavLinkClass("why")}
+                >
+                  {dict.nav.why}
+                </a>
+                <a
+                  href="#cta"
+                  onClick={handleAnchorClick}
+                  className={getNavLinkClass("cta")}
+                >
+                  {dict.nav.access}
+                </a>
+                <a
+                  href="#cta"
+                  onClick={handleAnchorClick}
+                  className="inline-flex w-full items-center justify-center rounded-full bg-brand-500 px-5 py-3 font-semibold text-white transition hover:bg-brand-400"
+                >
+                  {dict.ctaBtn}
+                </a>
+              </motion.nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Hero */}
         <section id="top" className="relative overflow-hidden">
           <div className="stars" aria-hidden="true" />
-          <div className="mx-auto max-w-6xl px-4 pt-20 pb-24 md:pt-28 md:pb-32 relative">
+          <div className="relative mx-auto max-w-6xl px-4 pt-16 pb-20 sm:px-6 md:pt-24 md:pb-24 lg:px-8">
             <motion.div
-              className="max-w-3xl"
+              className="mx-auto max-w-3xl text-center md:mx-0 md:text-left"
               initial="hidden"
               animate="show"
               variants={{ show: { transition: { staggerChildren: 0.07 } } }}
             >
-              <motion.h1 className="text-4xl md:text-6xl font-extrabold leading-tight tracking-tight" variants={sectionVariants}>
+              <motion.h1
+                className="text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl md:text-5xl lg:text-6xl"
+                variants={sectionVariants}
+              >
                 <AnimatedText text={dict.hero.h1a} by="words" />
                 <AnimatedText text={dict.hero.h1b} by="words" className="text-brand-400" delay={0.15} />
               </motion.h1>
 
-              <motion.p className="mt-5 text-lg md:text-xl text-white/70" variants={sectionVariants}>
+              <motion.p
+                className="mt-4 text-base text-white/70 sm:text-lg md:mt-5 md:text-xl"
+                variants={sectionVariants}
+              >
                 <AnimatedText text={dict.hero.p} by="words" delay={0.2} />
               </motion.p>
 
-              <motion.div className="mt-8 flex flex-col sm:flex-row gap-3" variants={sectionVariants}>
+              <motion.div
+                className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center md:justify-start"
+                variants={sectionVariants}
+              >
                 <a
                   href="#cta"
                   onClick={handleAnchorClick}
@@ -216,11 +396,11 @@ export default function HomeClient({
           whileInView="show"
           viewport={{ once: true, amount: 0.2 }}
         >
-          <div className="mx-auto max-w-6xl px-4 py-16 md:py-20">
-            <h2 className="text-3xl md:text-4xl font-extrabold">{dict.how.h2}</h2>
-            <p className="mt-2 text-white/70 max-w-2xl">{dict.how.p}</p>
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20 lg:px-8">
+            <h2 className="text-2xl font-extrabold sm:text-3xl md:text-4xl">{dict.how.h2}</h2>
+            <p className="mt-2 max-w-2xl text-base text-white/70 sm:text-lg">{dict.how.p}</p>
 
-            <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
               {[1, 2].map((i) => (
                 <motion.div
                   key={i}
@@ -250,11 +430,11 @@ export default function HomeClient({
           whileInView="show"
           viewport={{ once: true, amount: 0.2 }}
         >
-          <div className="mx-auto max-w-6xl px-4 py-16 md:py-20">
-            <h2 className="text-3xl md:text-4xl font-extrabold">{dict.why.h2}</h2>
-            <p className="mt-2 text-white/70">{dict.why.p}</p>
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20 lg:px-8">
+            <h2 className="text-2xl font-extrabold sm:text-3xl md:text-4xl">{dict.why.h2}</h2>
+            <p className="mt-2 text-base text-white/70 sm:text-lg">{dict.why.p}</p>
 
-            <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {["c1", "c2", "c3"].map((k, i) => (
                 <motion.div
                   key={k}
@@ -277,7 +457,7 @@ export default function HomeClient({
 
         {/* CTA */}
         <section id="cta" className="relative">
-          <div className="mx-auto max-w-6xl px-4 py-16 md:py-20">
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20 lg:px-8">
             <motion.div
               className={`rounded-3xl border border-white/10 bg-white/[.03] p-8 md:p-12 text-center ${shake ? "shake" : ""}`}
               ref={formRef}
@@ -296,7 +476,11 @@ export default function HomeClient({
                 <AnimatedText text={dict.cta.p} by="words" delay={0.2} />
               </p>
 
-              <form className="mx-auto mt-8 flex w-full max-w-xl flex-col sm:flex-row items-center gap-3" noValidate onSubmit={onSubmit}>
+              <form
+                className="mx-auto mt-8 flex w-full max-w-xl flex-col items-center gap-3 sm:flex-row"
+                noValidate
+                onSubmit={onSubmit}
+              >
                 <input
                   ref={emailInputRef}
                   type="email"
@@ -317,7 +501,7 @@ export default function HomeClient({
                 <motion.button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-full bg-brand-500 px-6 py-3 font-semibold hover:bg-brand-400 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full rounded-full bg-brand-500 px-6 py-3 font-semibold transition hover:bg-brand-400 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:min-w-[10rem]"
                   whileTap={{ scale: 0.98 }}
                 >
                   {btnText}
@@ -342,11 +526,11 @@ export default function HomeClient({
           whileInView="show"
           viewport={{ once: true, amount: 0.2 }}
         >
-          <div className="mx-auto max-w-6xl px-4 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-4 py-10 text-center sm:px-6 md:flex-row md:text-left lg:px-8">
             <a className="text-lg font-extrabold" href="#top" onClick={handleAnchorClick}>
               Hire<span className="text-brand-400">Match</span>
             </a>
-            <nav className="flex gap-6 text-sm text-white/70">
+            <nav className="flex flex-col gap-2 text-sm text-white/70 sm:flex-row sm:gap-6">
               <a href="#" className="hover:text-white" onClick={(e) => e.preventDefault()}>
                 {dict.footer.privacy}
               </a>
