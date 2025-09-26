@@ -30,18 +30,14 @@ export const viewport: Viewport = { themeColor: "#0f1220" };
 
 const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-inter" });
 
-async function unwrapParams<T>(p: T | Promise<T>): Promise<T> {
-  return p as any;
-}
-
 export default async function LocaleLayout({
   params,
   children,
 }: {
-  params: { locale: Locale } | Promise<{ locale: Locale }>;
+  params: Promise<{ locale: Locale }>;
   children: React.ReactNode;
 }) {
-  const { locale } = await unwrapParams(params);
+  const { locale } = await params;
 
   return (
     <html lang={locale} className={inter.variable}>
