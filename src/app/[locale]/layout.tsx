@@ -3,7 +3,7 @@ import "@/app/globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Inter } from "next/font/google";
-import { locales, type Locale } from "@/app/i18n/config";
+import { locales, defaultLocale, type Locale } from "@/app/i18n/config";
 
 export const dynamicParams = false;
 
@@ -30,14 +30,19 @@ export const viewport: Viewport = { themeColor: "#0f1220" };
 
 const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-inter" });
 
+function toLocale(value: string): Locale {
+  return (locales as readonly string[]).includes(value) ? (value as Locale) : defaultLocale;
+}
+
 export default async function LocaleLayout({
   params,
   children,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: Promise<{ locale: string }>;
   children: React.ReactNode;
 }) {
-  const { locale } = await params;
+  const { locale: raw } = await params;
+  const locale = toLocale(raw);
 
   return (
     <html lang={locale} className={inter.variable}>
