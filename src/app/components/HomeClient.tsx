@@ -52,6 +52,7 @@ export default function HomeClient({
   const [shake, setShake] = useState(false);
   const [announce, setAnnounce] = useState("");
   const [navOpen, setNavOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>("");
 
   const [activeSection, setActiveSection] = useState<string>("");
   const formRef = useRef<HTMLDivElement | null>(null);
@@ -239,7 +240,7 @@ export default function HomeClient({
             <a
               href="#top"
               onClick={handleAnchorClick}
-              className="text-lg font-extrabold tracking-tight sm:text-xl"
+              className="text-lg font-extrabold tracking-tight whitespace-nowrap sm:text-xl"
             >
               Hire<span className="text-brand-400">Match</span>
             </a>
@@ -319,13 +320,6 @@ export default function HomeClient({
                   className={getNavLinkClass("why")}
                 >
                   {dict.nav.why}
-                </a>
-                <a
-                  href="#cta"
-                  onClick={handleAnchorClick}
-                  className={getNavLinkClass("cta")}
-                >
-                  {dict.nav.access}
                 </a>
                 <a
                   href="#cta"
