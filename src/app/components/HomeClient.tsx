@@ -53,6 +53,7 @@ export default function HomeClient({
   const [announce, setAnnounce] = useState("");
   const [navOpen, setNavOpen] = useState(false);
 
+  const [activeSection, setActiveSection] = useState<string>("");
   const formRef = useRef<HTMLDivElement | null>(null);
   const emailInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -80,6 +81,7 @@ export default function HomeClient({
         const target = document.querySelector(href);
         if (target) {
           e.preventDefault();
+          setActiveSection(href.slice(1));
           (target as HTMLElement).scrollIntoView({ behavior: "smooth" });
           closeNav();
         }
@@ -173,6 +175,61 @@ export default function HomeClient({
     return () => window.removeEventListener("resize", handleResize);
   }, [closeNav]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const ids = ["how", "why", "cta"] as const;
+    const elements = ids
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => !!el);
+
+    if (!elements.length) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.target.getBoundingClientRect().top - b.target.getBoundingClientRect().top);
+
+        if (visible.length) {
+          setActiveSection(visible[0].target.id);
+          return;
+        }
+
+        const scrollY = window.scrollY;
+        let current: string | null = null;
+        for (const el of elements) {
+          if (scrollY >= el.offsetTop - 160) {
+            current = el.id;
+          }
+        }
+        setActiveSection(current ?? "");
+      },
+      { threshold: 0.4 }
+    );
+
+    elements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
+  const getNavLinkClass = useCallback(
+    (id: "how" | "why" | "cta") => {
+      const active = activeSection === id;
+      const base =
+        "rounded-2xl border border-white/10 bg-white/[.04] px-5 py-4 text-lg font-semibold text-white/90 transition hover:bg-white/[.08]";
+      if (!active) {
+        return base;
+      }
+      return "rounded-2xl border border-brand-300 bg-brand-100 px-5 py-4 text-lg font-semibold text-brand-900 transition hover:bg-brand-100/90";
+    },
+    [activeSection]
+  );
+
   return (
     <PageTransitions locale={locale}>
       <main suppressHydrationWarning>
@@ -252,21 +309,21 @@ export default function HomeClient({
                 <a
                   href="#how"
                   onClick={handleAnchorClick}
-                  className="rounded-2xl border border-white/10 bg-white/[.04] px-5 py-4 text-lg font-semibold text-white/90 transition hover:bg-white/[.08]"
+                  className={getNavLinkClass("how")}
                 >
                   {dict.nav.how}
                 </a>
                 <a
                   href="#why"
                   onClick={handleAnchorClick}
-                  className="rounded-2xl border border-white/10 bg-white/[.04] px-5 py-4 text-lg font-semibold text-white/90 transition hover:bg-white/[.08]"
+                  className={getNavLinkClass("why")}
                 >
                   {dict.nav.why}
                 </a>
                 <a
                   href="#cta"
                   onClick={handleAnchorClick}
-                  className="rounded-2xl border border-white/10 bg-brand-500/10 px-5 py-4 text-lg font-semibold text-brand-100 transition hover:bg-brand-500/20"
+                  className={getNavLinkClass("cta")}
                 >
                   {dict.nav.access}
                 </a>
