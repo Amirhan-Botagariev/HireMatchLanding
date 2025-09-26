@@ -1,3 +1,4 @@
+// src/app/[locale]/page.tsx
 import { getDictionary } from "@/app/i18n/dictionaries";
 import { locales, type Locale } from "@/app/i18n/config";
 import HomeClient from "@/app/components/HomeClient";
@@ -8,16 +9,12 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
-async function unwrapParams<T>(p: T | Promise<T>): Promise<T> {
-  return p as any;
-}
-
 export default async function Page({
   params,
 }: {
-  params: { locale: Locale } | Promise<{ locale: Locale }>;
+  params: Promise<{ locale: Locale }>;
 }) {
-  const { locale } = await unwrapParams(params); // <-- обязательно await
+  const { locale } = await params;
   const [dict] = await Promise.all([getDictionary(locale)]);
 
   return <HomeClient locale={locale} dict={dict} />;
