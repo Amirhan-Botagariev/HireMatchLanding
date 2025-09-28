@@ -17,21 +17,39 @@ export async function POST(req: NextRequest) {
   try {
     payload = await req.json();
   } catch {
-    return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: "Invalid JSON" },
+      { status: 400 }
+    );
   }
 
-  const { email, referrer, utm, userAgent, locale, tzOffsetMin } =
-    (payload as {
-      email?: unknown;
-      referrer?: unknown;
-      utm?: unknown;
-      userAgent?: unknown;
-      locale?: unknown;
-      tzOffsetMin?: unknown;
-    }) || {};
+  const {
+    email,
+    name,
+    specialty,
+    telegram,
+    referrer,
+    utm,
+    userAgent,
+    locale,
+    tzOffsetMin,
+  } = (payload as {
+    email?: unknown;
+    name?: unknown;
+    specialty?: unknown;
+    telegram?: unknown;
+    referrer?: unknown;
+    utm?: unknown;
+    userAgent?: unknown;
+    locale?: unknown;
+    tzOffsetMin?: unknown;
+  }) || {};
 
   if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json({ ok: false, error: "Invalid email" }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: "Invalid email" },
+      { status: 400 }
+    );
   }
 
   let utmParams: Record<string, string> | null = null;
@@ -47,13 +65,21 @@ export async function POST(req: NextRequest) {
 
   const insert = {
     email,
+    name: typeof name === "string" && name.trim() ? name.trim() : null,
+    specialty:
+      typeof specialty === "string" && specialty.trim() ? specialty.trim() : null,
+    telegram:
+      typeof telegram === "string" && telegram.trim() ? telegram.trim() : null,
     referrer: typeof referrer === "string" && referrer.trim() ? referrer : null,
     utm_params: utmParams,
-    user_agent: typeof userAgent === "string" && userAgent.trim() ? userAgent : null,
+    user_agent:
+      typeof userAgent === "string" && userAgent.trim() ? userAgent : null,
     locale: typeof locale === "string" && locale.trim() ? locale : null,
     tz_offset_min:
       (typeof tzOffsetMin === "number" && Number.isFinite(tzOffsetMin)) ||
-      (typeof tzOffsetMin === "string" && tzOffsetMin.trim() !== "" && !Number.isNaN(Number(tzOffsetMin)))
+      (typeof tzOffsetMin === "string" &&
+        tzOffsetMin.trim() !== "" &&
+        !Number.isNaN(Number(tzOffsetMin)))
         ? Number(tzOffsetMin)
         : null,
   };
@@ -77,7 +103,10 @@ export async function POST(req: NextRequest) {
     }
   } catch (error) {
     console.error("Supabase request error:", error);
-    return NextResponse.json({ ok: false, error: "Server error" }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: "Server error" },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ ok: true }, { status: 200 });

@@ -16,7 +16,10 @@ type Dict = {
   why: { h2: string; p: string; c1t: string; c1p: string; c2t: string; c2p: string; c3t: string; c3p: string };
   cta: {
     h2a: string; h2b: string; h2c: string; p: string;
-    submit: string; sending: string; done: string; emailPh: string; error: string; note: string;
+    submit: string; sending: string; done: string;
+    emailPh: string; error: string; note: string;
+    namePh: string; specialtyPh: string; telegramPh: string;
+    nameError: string; telegramError: string;
   };
   footer: { privacy: string; contacts: string; copyright: string };
 };
@@ -46,7 +49,14 @@ export default function HomeClient({
   dict: Dict;
 }) {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [specialty, setSpecialty] = useState("");
+  const [telegram, setTelegram] = useState("");
+
   const [error, setError] = useState<string | null>(null);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [tgError, setTgError] = useState<string | null>(null);
+
   const [submitting, setSubmitting] = useState(false);
   const [btnText, setBtnText] = useState(dict.cta.submit);
   const [shake, setShake] = useState(false);
@@ -64,13 +74,93 @@ export default function HomeClient({
     (msg = dict.cta.error) => {
       setError(msg);
       setShake(true);
-      // короткая «тряска», потом убираем класс
       const t = setTimeout(() => setShake(false), 400);
       setAnnounce(msg);
       return () => clearTimeout(t);
     },
     [dict.cta.error]
   );
+
+  const validateName = (value: string) => /^[\p{L}\s-]+$/u.test(value);
+  const validateTelegram = (value: string) => /^@[A-Za-z0-9_]{4,}$/.test(value);
+
+  const buildTracking = useCallback(() => {
+    const qs = typeof window !== "undefined" ? window.location.search : "";
+    return {
+      referrer: typeof document !== "undefined" ? document.referrer || "direct" : "direct",
+      utm: qs || "",
+      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "",
+      locale,
+      tzOffsetMin: new Date().getTimezoneOffset(),
+    };
+  }, [locale]);
+
+  const validateAndSubmit = useCallback(async () => {
+    const trimmedName = name.trim();
+    if (!validateName(trimmedName) || trimmedName.length === 0) {
+      setNameError(dict.cta.nameError);
+      return;
+    } else setNameError(null);
+
+    const trimmedTg = telegram.trim();
+    if (!validateTelegram(trimmedTg)) {
+      setTgError(dict.cta.telegramError);
+      return;
+    } else setTgError(null);
+
+    const trimmedEmail = email.trim();
+    if (!emailRegex.test(trimmedEmail)) {
+      showError();
+      return;
+    }
+    clearError();
+
+    setSubmitting(true);
+    setBtnText(dict.cta.sending);
+
+    const payload = Object.assign(
+      { email: trimmedEmail, name: trimmedName, specialty: specialty.trim(), telegram: trimmedTg },
+      buildTracking()
+    );
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      setBtnText(dict.cta.done);
+      setAnnounce(res.ok ? "ok" : "error");
+      if (res.ok) {
+        setEmail("");
+        setName("");
+        setSpecialty("");
+        setTelegram("");
+      }
+    } catch {
+      setBtnText(dict.cta.done);
+      setAnnounce("network-error");
+    } finally {
+      const t = setTimeout(() => {
+        setSubmitting(false);
+        setBtnText(dict.cta.submit);
+      }, 2000);
+      return () => clearTimeout(t);
+    }
+  }, [name, telegram, email, specialty, emailRegex, showError, clearError, buildTracking, dict.cta]);
+
+  const onSubmit = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      validateAndSubmit();
+    },
+    [validateAndSubmit]
+  );
+
+  useEffect(() => {
+    if (error && emailInputRef.current) {
+      emailInputRef.current.focus();
+    }
+  }, [error]);
 
   const closeNav = useCallback(() => setNavOpen(false), []);
 
@@ -89,58 +179,6 @@ export default function HomeClient({
     },
     [closeNav]
   );
-
-  const buildTracking = useCallback(() => {
-    const qs = typeof window !== "undefined" ? window.location.search : "";
-    return {
-      referrer: typeof document !== "undefined" ? document.referrer || "direct" : "direct",
-      utm: qs || "",
-      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "",
-      locale,
-      tzOffsetMin: new Date().getTimezoneOffset(),
-    };
-  }, [locale]);
-
-  const validateAndSubmit = useCallback(async () => {
-    const trimmed = email.trim();
-    if (!emailRegex.test(trimmed)) {
-      showError();
-      return;
-    }
-    clearError();
-    setSubmitting(true);
-    setBtnText(dict.cta.sending);
-
-    const payload = Object.assign({ email: trimmed }, buildTracking());
-    try {
-      const res = await fetch("/api/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      setBtnText(dict.cta.done);
-      setAnnounce(res.ok ? "ok" : "error");
-      if (res.ok) setEmail("");
-    } catch {
-      setBtnText(dict.cta.done);
-      setAnnounce("network-error");
-    } finally {
-      const t = setTimeout(() => {
-        setSubmitting(false);
-        setBtnText(dict.cta.submit);
-      }, 2000);
-      return () => clearTimeout(t);
-    }
-  }, [email, emailRegex, clearError, showError, buildTracking, dict.cta.sending, dict.cta.done, dict.cta.submit]);
-
-  const onSubmit = useCallback(
-    (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      validateAndSubmit();
-    },
-    [validateAndSubmit]
-  );
-
   useEffect(() => {
     if (error && emailInputRef.current) {
       emailInputRef.current.focus();
@@ -461,12 +499,7 @@ export default function HomeClient({
             >
               <h2 className="text-3xl md:text-4xl font-extrabold">
                 <AnimatedText text={dict.cta.h2a} by="words" />
-                <AnimatedText
-                  text={dict.cta.h2b}
-                  by="chars"
-                  className="brand-nowrap text-brand-400"
-                  delay={0.1}
-                />
+                <AnimatedText text={dict.cta.h2b} by="chars" className="brand-nowrap text-brand-400" delay={0.1} />
                 <AnimatedText text={dict.cta.h2c} by="chars" delay={0.15} />
               </h2>
 
@@ -475,10 +508,53 @@ export default function HomeClient({
               </p>
 
               <form
-                className="mx-auto mt-8 flex w-full max-w-xl flex-col items-center gap-3 sm:flex-row"
+                className="mx-auto mt-8 flex w-full max-w-xl flex-col items-center gap-3 sm:flex-row sm:flex-wrap"
                 noValidate
                 onSubmit={onSubmit}
               >
+                {/* Имя */}
+                <input
+                  type="text"
+                  name="name"
+                  placeholder={dict.cta.namePh}
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (nameError) setNameError(null);
+                  }}
+                  className={`w-full rounded-full bg-white/5 px-5 py-3 outline-none ring-1 ring-inset ${
+                    nameError ? "ring-red-500" : "ring-white/10"
+                  } focus:ring-brand-400 transition sm:flex-[1_1_48%]`}
+                />
+
+                {/* Специальность */}
+                <input
+                  type="text"
+                  name="specialty"
+                  placeholder={dict.cta.specialtyPh}
+                  value={specialty}
+                  onChange={(e) => setSpecialty(e.target.value)}
+                  className="w-full rounded-full bg-white/5 px-5 py-3 outline-none ring-1 ring-inset ring-white/10 focus:ring-brand-400 transition sm:flex-[1_1_48%]"
+                />
+
+                {/* Telegram */}
+                <input
+                  type="text"
+                  name="telegram"
+                  placeholder={dict.cta.telegramPh}
+                  value={telegram}
+                  onChange={(e) => {
+                    setTelegram(e.target.value);
+                    if (tgError) setTgError(null);
+                  }}
+                  className={`w-full rounded-full bg-white/5 px-5 py-3 outline-none ring-1 ring-inset ${
+                    tgError ? "ring-red-500" : "ring-white/10"
+                  } focus:ring-brand-400 transition sm:flex-[1_1_48%]`}
+                  inputMode="text"
+                  autoComplete="off"
+                />
+
+                {/* Email */}
                 <input
                   ref={emailInputRef}
                   type="email"
@@ -490,27 +566,30 @@ export default function HomeClient({
                     setEmail(e.target.value);
                     if (error) clearError();
                   }}
-                  className={`flex-1 rounded-full bg-white/5 px-5 py-3 outline-none ring-1 ring-inset ${
+                  className={`w-full rounded-full bg-white/5 px-5 py-3 outline-none ring-1 ring-inset ${
                     error ? "ring-red-500" : "ring-white/10"
-                  } focus:ring-brand-400 transition`}
+                  } focus:ring-brand-400 transition sm:flex-[1_1_48%]`}
                   aria-invalid={!!error}
                   aria-describedby={error ? "email-error" : undefined}
                 />
+
+                <div className="w-full min-h-[1.25rem] mt-1 text-center" aria-live="polite">
+                  {(nameError || tgError || error) && (
+                    <p id="form-error" className="text-sm text-red-400" role="alert">
+                      {nameError || tgError || error}
+                    </p>
+                  )}
+                </div>
+
                 <motion.button
                   type="submit"
                   disabled={submitting}
-                  className="w-full rounded-full bg-brand-500 px-6 py-3 font-semibold transition hover:bg-brand-400 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:min-w-[10rem]"
+                  className="mt-1 mx-auto w-full sm:w-auto rounded-full bg-brand-500 px-6 py-3 font-semibold transition hover:bg-brand-400 disabled:cursor-not-allowed disabled:opacity-60"
                   whileTap={{ scale: 0.98 }}
                 >
                   {btnText}
                 </motion.button>
               </form>
-
-              {error && (
-                <p id="email-error" className="mt-3 text-sm text-red-400" role="alert">
-                  {error}
-                </p>
-              )}
               <p className="mt-3 text-xs text-white/50">{dict.cta.note}</p>
             </motion.div>
           </div>
