@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Inter } from "next/font/google";
 import { locales, defaultLocale, type Locale } from "@/app/i18n/config";
+import { getDictionary } from "@/app/i18n/dictionaries";
 
 export const dynamicParams = false;
 
@@ -11,20 +12,74 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
-export const metadata: Metadata = {
-  title: "FastMatch — Автоматизация откликов для соискателей",
-  description:
-    "ИИ анализирует резюме и автоматически отправляет персонализированные заявки на вакансии — для всех, кто ищет работу.",
-  icons: {
-    icon: [
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon.ico" },
-    ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
-    other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#2f84ff" }],
-  },
-};
+const SITE_URL = "https://fastmatch.me";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale: raw } = await params;
+  const locale = (["ru", "en", "kz"] as const).includes(raw as any) ? (raw as "ru" | "en" | "kz") : "ru";
+
+  const dict = getDictionary(locale);
+  const title = locale === "en"
+    ? "FastMatch — automate job applications with AI"
+    : locale === "kz"
+    ? "FastMatch — ЖИ көмегімен өтінімдерді автоматтандыр"
+    : "FastMatch — Автоматизация откликов для соискателей";
+
+  const description = dict.how.p;
+
+  const hrefs = {
+    ru: `${SITE_URL}/ru`,
+    en: `${SITE_URL}/en`,
+    kz: `${SITE_URL}/kz`,
+  };
+
+  return {
+    metadataBase: new URL(SITE_URL),
+    title,
+    description,
+    alternates: {
+      canonical: hrefs[locale],
+      languages: {
+        en: hrefs.en,
+        ru: hrefs.ru,
+        kk: hrefs.kz,
+        "x-default": SITE_URL,
+      },
+    },
+    openGraph: {
+      type: "website",
+      url: `${SITE_URL}/${locale}`,
+      siteName: "FastMatch",
+      title,
+      description,
+      locale,
+      images: [{ url: "/og.png", width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ["/og.png"],
+    },
+    icons: {
+      icon: [
+        { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+        { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+        { url: "/favicon.ico" },
+      ],
+      apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+      other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#2f84ff" }],
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
+}
 
 export const viewport: Viewport = { themeColor: "#0f1220" };
 
@@ -44,9 +99,23 @@ export default async function LocaleLayout({
   const { locale: raw } = await params;
   const locale = toLocale(raw);
 
+  // JSON-LD (Organization + WebSite) — помогает сниппетам
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "FastMatch",
+    url: `${SITE_URL}/${locale}`,
+    logo: `${SITE_URL}/apple-touch-icon.png`,
+  };
+
   return (
     <html lang={locale} className={inter.variable}>
       <body className="bg-base-950 text-white antialiased">
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         {children}
         <Analytics />
         <SpeedInsights />
