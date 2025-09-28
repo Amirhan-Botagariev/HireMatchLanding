@@ -11,7 +11,7 @@ export const ru = {
     secondary: "Как это работает",
   },
   how: {
-    h2: "HireMatch решает эту проблему",
+    h2: "FastMatch решает эту проблему",
     p: "Искусственный интеллект автоматизирует поиск работы для соискателей.",
     card1t: "Загрузи резюме",
     card1p: "Просто загрузи своё резюме — мы проанализируем навыки и опыт и подберём подходящие вакансии.",
@@ -19,18 +19,18 @@ export const ru = {
     card2p: "Алгоритм автоматически шлёт персонализированные отклики работодателям. Ты экономишь время и силы.",
   },
   why: {
-    h2: "Почему HireMatch?",
+    h2: "Почему FastMatch?",
     p: "Присоединись к соискателям, которые уже получают больше интервью",
     c1t: "Экономь до 10 часов в неделю",
     c1p: "Забудь о бесконечном скролле и шаблонных письмах — всё сделаем мы.",
     c2t: "Больше шансов получить ответ",
     c2p: "Персонализация повышает конверсию откликов и ответы рекрутеров.",
     c3t: "Быстрее найдёшь работу",
-    c3p: "HireMatch работает 24/7, пока ты занимаешься своими делами.",
+    c3p: "FastMatch работает 24/7, пока ты занимаешься своими делами.",
   },
   cta: {
     h2a: "Готов попробовать ",
-    h2b: "HireMatch",
+    h2b: "FastMatch",
     h2c: "?",
     p: "Стань одним из первых, кто получит доступ к платформе, которая ускорит твой поиск работы.",
     submit: "Попробовать",
@@ -48,7 +48,7 @@ export const ru = {
   footer: {
     privacy: "Политика конфиденциальности",
     contacts: "Контакты",
-    copyright: "© 2025 HireMatch. All rights reserved.",
+    copyright: "© 2025 FastMatch. All rights reserved.",
   },
   switch: { ru: "РУС", en: "EN", kz: "ҚАЗ" },
 };
@@ -65,7 +65,7 @@ export const en: Dict = {
     secondary: "How it works",
   },
   how: {
-    h2: "HireMatch solves this problem",
+    h2: "FastMatch solves this problem",
     p: "AI automates the job search for candidates.",
     card1t: "Upload your resume",
     card1p: "We analyze your skills/experience and match suitable jobs.",
@@ -73,18 +73,18 @@ export const en: Dict = {
     card2p: "The algorithm sends personalized applications automatically. Save time and energy.",
   },
   why: {
-    h2: "Why HireMatch?",
+    h2: "Why FastMatch?",
     p: "Join candidates who already get more interviews",
     c1t: "Save up to 10 hours a week",
     c1p: "Forget endless scrolling and templates — we do it for you.",
     c2t: "Higher chance to get replies",
     c2p: "Personalization increases response rate from recruiters.",
     c3t: "Find a job faster",
-    c3p: "HireMatch works 24/7 while you focus on your life.",
+    c3p: "FastMatch works 24/7 while you focus on your life.",
   },
   cta: {
     h2a: "Ready to try ",
-    h2b: "HireMatch",
+    h2b: "FastMatch",
     h2c: "?",
     p: "Be among the first to access a platform that speeds up your job search.",
     submit: "Try",
@@ -102,7 +102,7 @@ export const en: Dict = {
   footer: {
     privacy: "Privacy Policy",
     contacts: "Contacts",
-    copyright: "© 2025 HireMatch. All rights reserved.",
+    copyright: "© 2025 FastMatch. All rights reserved.",
   },
   switch: { ru: "RU", en: "EN", kz: "QAZ" },
 };
@@ -118,7 +118,7 @@ export const kz: Dict = {
     secondary: "Бұл қалай жұмыс істейді",
   },
   how: {
-    h2: "HireMatch бұл мәселені шешеді",
+    h2: "FastMatch бұл мәселені шешеді",
     p: "ЖИ жұмыс іздеуді автоматтандырады.",
     card1t: "Түйіндемені талдау",
     card1p: "Біз сенің дағдыларыңды талдап, сәйкес бос жұмыс орындарын табамыз.",
@@ -126,18 +126,18 @@ export const kz: Dict = {
     card2p: "Алгоритм жеке өтінімдерді автоматты түрде жібереді. Уақытың мен күшіңді үнемде.",
   },
   why: {
-    h2: "Неге HireMatch?",
+    h2: "Неге FastMatch?",
     p: "Көбірек сұхбат алып жатқан үміткерлерге қосыл",
     c1t: "Аптасына 10 сағатқа дейін үнемде",
     c1p: "Шексіз жұмыс ідеу мен үлгі хаттарды жіберуді ұмыт — бәрін біз жасаймыз.",
     c2t: "Рекрутерлерден жауап алуды мүмкіндігінше жоғарлат",
     c2p: "Жеке ұсыныстар жұмыс табу ықтималдығын арттырады.",
     c3t: "Жұмысты тезірек тап",
-    c3p: "HireMatch тәулік бойы жұмыс істегенде, сен өз ісіңмен айналысасың.",
+    c3p: "FastMatch тәулік бойы жұмыс істегенде, сен өз ісіңмен айналысасың.",
   },
   cta: {
     h2a: "",
-    h2b: "HireMatch",
+    h2b: "FastMatch",
     h2c: " пайдалануға дайынсың ба?",
     p: "Жұмыс іздеуді жылдамдататын платформаға алғашқылардың бірі болып қол жеткіз.",
     submit: "Қатысу",
@@ -155,7 +155,7 @@ export const kz: Dict = {
   footer: {
     privacy: "Құпиялылық саясаты",
     contacts: "Байланыс",
-    copyright: "© 2025 HireMatch. Барлық құқықтар қорғалған.",
+    copyright: "© 2025 FastMatch. Барлық құқықтар қорғалған.",
   },
   switch: { ru: "РУС", en: "EN", kz: "ҚАЗ" },
 };

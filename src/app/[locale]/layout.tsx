@@ -12,7 +12,7 @@ export function generateStaticParams() {
 }
 
 export const metadata: Metadata = {
-  title: "HireMatch — Автоматизация откликов для соискателей",
+  title: "FastMatch — Автоматизация откликов для соискателей",
   description:
     "ИИ анализирует резюме и автоматически отправляет персонализированные заявки на вакансии — для всех, кто ищет работу.",
   icons: {

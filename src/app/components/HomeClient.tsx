@@ -279,7 +279,7 @@ export default function HomeClient({
               onClick={handleAnchorClick}
               className="brand-nowrap text-lg font-extrabold tracking-tight sm:text-xl"
             >
-              Hire<span className="text-brand-400">Match</span>
+              Fast<span className="text-brand-400">Match</span>
             </a>
 
             <nav className="hidden items-center gap-6 text-sm text-white/70 md:flex">
@@ -605,7 +605,7 @@ export default function HomeClient({
         >
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-4 py-10 text-center sm:px-6 md:flex-row md:text-left lg:px-8">
             <a className="brand-nowrap text-lg font-extrabold" href="#top" onClick={handleAnchorClick}>
-              Hire<span className="text-brand-400">Match</span>
+              Fast<span className="text-brand-400">Match</span>
             </a>
             <nav className="flex flex-col gap-2 text-sm text-white/70 sm:flex-row sm:gap-6">
               <a href="#" className="hover:text-white" onClick={(e) => e.preventDefault()}>
