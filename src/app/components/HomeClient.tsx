@@ -1,19 +1,29 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion, Variants } from "framer-motion";
+import { AnimatePresence, motion, Variants, useReducedMotion } from "framer-motion";
 import AnimatedText from "@/app/components/AnimatedText";
 import PageTransitions from "@/app/components/PageTransitions";
 import LanguageSwitcher from "@/app/components/LanguageSwitcher";
-
-type Locale = "ru" | "en" | "kz";
+import dynamic from "next/dynamic";
+import Image from "next/image";
+const ProcessSynced = dynamic(() => import("@/app/components/process/ProcessSynced"), { ssr: false });
+import type { Locale } from "@/app/i18n/config";
 
 type Dict = {
   nav: { how: string; why: string; access: string };
   ctaBtn: string;
-  hero: { h1a: string; h1b: string; p: string; primary: string; secondary: string };
-  how: { h2: string; p: string; card1t: string; card1p: string; card2t: string; card2p: string };
-  why: { h2: string; p: string; c1t: string; c1p: string; c2t: string; c2p: string; c3t: string; c3p: string };
+  hero: {
+    h1a: string;
+    h1b: string;
+    p: string;
+    primary: string;
+    secondary: string;
+  };
+  process: {
+    steps: { title: string; text: string }[];
+    sourcesTitle: string;
+  };
   cta: {
     h2a: string; h2b: string; h2c: string; p: string;
     submit: string; sending: string; done: string;
@@ -26,20 +36,74 @@ type Dict = {
 
 const easeOutExpo: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
+const SOURCES: { src: string; alt: string; w: number; h: number }[] = [
+  { src: "/logos/hh.png", alt: "HeadHunter", w: 192, h: 80 },
+  { src: "/logos/linkedin.png", alt: "LinkedIn", w: 192, h: 80 },
+  { src: "/logos/indeed.png", alt: "Indeed", w: 192, h: 80 },
+];
+
+function SourcesMarquee({ dict }: { dict: Dict }) {
+  const shouldReduce = useReducedMotion();
+  const track = useMemo(
+    () => Array.from({ length: 5 }, () => SOURCES).flat(),
+    []
+  );
+
+  return (
+    <section aria-label="Источники вакансий" className="relative">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:py-8 lg:px-8">
+        <h2 className="mb-6 text-center text-2xl sm:text-3xl md:text-4xl font-extrabold">
+          {dict.process.sourcesTitle}
+        </h2>
+
+        <div className="relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-base-950 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-base-950 to-transparent" />
+
+          <motion.div
+            className="flex items-center gap-12 whitespace-nowrap will-change-transform px-4"
+            role="list"
+            animate={shouldReduce ? undefined : { x: ["-50%", "0%"] }}
+            transition={
+              shouldReduce ? undefined : { duration: 12, ease: "linear", repeat: Infinity }
+            }
+          >
+            {track.map((s, i) => (
+              <div
+                key={`${s.src}-${i}`}
+                role="listitem"
+                className="h-16 w-40 md:h-20 md:w-48 flex-shrink-0 transition-transform hover:scale-105"
+                title={s.alt}
+              >
+                <Image
+                  src={s.src}
+                  alt={s.alt}
+                  width={s.w}
+                  height={s.h}
+                  loading="lazy"
+                  draggable={false}
+                  className="h-full w-full object-contain"
+                />
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 const sectionVariants: Variants = {
   hidden: { opacity: 0, y: 12 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { ease: easeOutExpo, duration: 0.35 },
-  },
+  show: { opacity: 1, y: 0, transition: { ease: easeOutExpo, duration: 0.35 } },
 };
 
-const cardsReveal = (i: number) => ({
-  initial: { opacity: 0, y: 10 },
-  whileInView: { opacity: 1, y: 0 },
-  transition: { duration: 0.35, delay: i * 0.05 },
-} as const);
+const cardsReveal = (i: number) =>
+  ({
+    initial: { opacity: 0, y: 10 },
+    whileInView: { opacity: 1, y: 0 },
+    transition: { duration: 0.35, delay: i * 0.05 },
+  } as const);
 
 export default function HomeClient({
   locale,
@@ -48,14 +112,12 @@ export default function HomeClient({
   locale: Locale;
   dict: Dict;
 }) {
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
+  // ---------------------------
+  // STATE (упрощённая форма)
+  // ---------------------------
   const [specialty, setSpecialty] = useState("");
-  const [telegram, setTelegram] = useState("");
-
-  const [error, setError] = useState<string | null>(null);
-  const [nameError, setNameError] = useState<string | null>(null);
-  const [tgError, setTgError] = useState<string | null>(null);
+  const [contact, setContact] = useState(""); // Telegram/Instagram
+  const [contactError, setContactError] = useState<string | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [btnText, setBtnText] = useState(dict.cta.submit);
@@ -65,24 +127,29 @@ export default function HomeClient({
   const [activeSection, setActiveSection] = useState<string>("");
 
   const formRef = useRef<HTMLDivElement | null>(null);
-  const emailInputRef = useRef<HTMLInputElement | null>(null);
 
-  const emailRegex = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/, []);
-  const clearError = useCallback(() => setError(null), []);
+  // ---------------------------
+  // HELPERS
+  // ---------------------------
+  const contactPlaceholder = useMemo(() => {
+    if (locale === "en") return "Telegram/Instagram (@handle or link)";
+    if (locale === "kz") return "Telegram/Instagram (@handle немесе сілтеме)";
+    return "Telegram/Instagram @username";
+  }, [locale]);
 
-  const showError = useCallback(
-    (msg = dict.cta.error) => {
-      setError(msg);
-      setShake(true);
-      const t = setTimeout(() => setShake(false), 400);
-      setAnnounce(msg);
-      return () => clearTimeout(t);
-    },
-    [dict.cta.error]
-  );
+  const contactErrorText = useMemo(() => {
+    if (locale === "en") return "Enter Telegram/Instagram: @handle or full link";
+    if (locale === "kz") return "Telegram/Instagram енгізіңіз: @handle немесе сілтеме";
+    return "Введите Telegram/Instagram: @ник или ссылку";
+  }, [locale]);
 
-  const validateName = (value: string) => /^[\p{L}\s-]+$/u.test(value);
-  const validateTelegram = (value: string) => /^@[A-Za-z0-9_]{4,}$/.test(value);
+  const validateContact = useCallback((value: string) => {
+    const v = value.trim();
+    if (!v) return false;
+    const atHandle = /^@[A-Za-z0-9._-]{4,32}$/i.test(v);
+    const url = /^https?:\/\/(t\.me|telegram\.me|instagram\.com)\/[A-Za-z0-9._-]{3,32}$/i.test(v);
+    return atHandle || url;
+  }, []);
 
   const buildTracking = useCallback(() => {
     const qs = typeof window !== "undefined" ? window.location.search : "";
@@ -95,58 +162,57 @@ export default function HomeClient({
     };
   }, [locale]);
 
+  // ---------------------------
+  // SUBMIT
+  // ---------------------------
   const validateAndSubmit = useCallback(async () => {
-    const trimmedName = name.trim();
-    if (!validateName(trimmedName) || trimmedName.length === 0) {
-      setNameError(dict.cta.nameError);
+    if (!validateContact(contact)) {
+      setContactError(contactErrorText);
+      setShake(true);
+      window.setTimeout(() => setShake(false), 400);
       return;
-    } else setNameError(null);
-
-    const trimmedTg = telegram.trim();
-    if (!validateTelegram(trimmedTg)) {
-      setTgError(dict.cta.telegramError);
-      return;
-    } else setTgError(null);
-
-    const trimmedEmail = email.trim();
-    if (!emailRegex.test(trimmedEmail)) {
-      showError();
-      return;
+    } else {
+      setContactError(null);
     }
-    clearError();
 
     setSubmitting(true);
     setBtnText(dict.cta.sending);
 
     const payload = Object.assign(
-      { email: trimmedEmail, name: trimmedName, specialty: specialty.trim(), telegram: trimmedTg },
+      {
+        contact: contact.trim(),
+        specialty: specialty.trim(),
+      },
       buildTracking()
     );
+
     try {
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      setBtnText(dict.cta.done);
-      setAnnounce(res.ok ? "ok" : "error");
+
       if (res.ok) {
-        setEmail("");
-        setName("");
+        setBtnText(dict.cta.done);
+        setAnnounce("ok");
         setSpecialty("");
-        setTelegram("");
+        setContact("");
+      } else {
+        setBtnText(dict.cta.error || dict.cta.done);
+        setAnnounce("error");
       }
     } catch {
-      setBtnText(dict.cta.done);
+      setBtnText(dict.cta.error || dict.cta.done);
       setAnnounce("network-error");
     } finally {
-      const t = setTimeout(() => {
+      const id = window.setTimeout(() => {
         setSubmitting(false);
         setBtnText(dict.cta.submit);
       }, 2000);
-      return () => clearTimeout(t);
+      // при желании можно сохранить id в ref и чистить на unmount
     }
-  }, [name, telegram, email, specialty, emailRegex, showError, clearError, buildTracking, dict.cta]);
+  }, [contact, specialty, dict.cta, buildTracking, validateContact, contactErrorText]);
 
   const onSubmit = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
@@ -156,12 +222,9 @@ export default function HomeClient({
     [validateAndSubmit]
   );
 
-  useEffect(() => {
-    if (error && emailInputRef.current) {
-      emailInputRef.current.focus();
-    }
-  }, [error]);
-
+  // ---------------------------
+  // NAV & ACTIVE SECTION
+  // ---------------------------
   const closeNav = useCallback(() => setNavOpen(false), []);
 
   const handleAnchorClick = useCallback(
@@ -173,26 +236,21 @@ export default function HomeClient({
           e.preventDefault();
           setActiveSection(href.slice(1));
           (target as HTMLElement).scrollIntoView({ behavior: "smooth" });
+          // синхронизируем URL с позицией
+          if (typeof history !== "undefined") {
+            history.pushState(null, "", href);
+          }
           closeNav();
         }
       }
     },
     [closeNav]
   );
-  useEffect(() => {
-    if (error && emailInputRef.current) {
-      emailInputRef.current.focus();
-    }
-  }, [error]);
 
   useEffect(() => {
-    if (!navOpen) {
-      return;
-    }
+    if (!navOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        closeNav();
-      }
+      if (event.key === "Escape") closeNav();
     };
     const originalOverflow = document.body.style.overflow;
     document.addEventListener("keydown", onKeyDown);
@@ -205,53 +263,49 @@ export default function HomeClient({
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        closeNav();
-      }
+      if (window.innerWidth >= 768) closeNav();
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [closeNav]);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
+    if (typeof window === "undefined") return;
 
     const ids = ["how", "why", "cta"] as const;
     const elements = ids
       .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => !!el);
-
-    if (!elements.length) {
-      return;
-    }
+    if (!elements.length) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries
           .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.target.getBoundingClientRect().top - b.target.getBoundingClientRect().top);
-
+          .sort(
+            (a, b) =>
+              a.target.getBoundingClientRect().top -
+              b.target.getBoundingClientRect().top
+          );
         if (visible.length) {
           setActiveSection(visible[0].target.id);
           return;
         }
-
+        // fallback при сверхбыстрой прокрутке
         const scrollY = window.scrollY;
         let current: string | null = null;
         for (const el of elements) {
-          if (scrollY >= el.offsetTop - 160) {
-            current = el.id;
-          }
+          if (scrollY >= el.offsetTop - 160) current = el.id;
         }
         setActiveSection(current ?? "");
       },
-      { threshold: 0.4 }
+      {
+        threshold: 0.4,
+        rootMargin: "-80px 0px -40% 0px", // компенсируем высоту шапки и «визуальную» зону
+      }
     );
 
     elements.forEach((el) => observer.observe(el));
-
     return () => observer.disconnect();
   }, []);
 
@@ -260,38 +314,29 @@ export default function HomeClient({
       const active = activeSection === id;
       const base =
         "rounded-2xl border border-white/10 bg-white/[.04] px-5 py-4 text-lg font-semibold text-white/90 transition hover:bg-white/[.08]";
-      if (!active) {
-        return base;
-      }
+      if (!active) return base;
       return "rounded-2xl border border-brand-300 bg-brand-100 px-5 py-4 text-lg font-semibold text-brand-900 transition hover:bg-brand-100/90";
     },
     [activeSection]
   );
 
+  // ---------------------------
+  // RENDER
+  // ---------------------------
   return (
     <PageTransitions locale={locale}>
       <main suppressHydrationWarning>
         {/* Header */}
         <motion.header className="sticky top-0 z-40 border-b border-white/5 bg-base-950/70 backdrop-blur">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
-            <a
-              href="#top"
-              onClick={handleAnchorClick}
-              className="brand-nowrap text-lg font-extrabold tracking-tight sm:text-xl"
-            >
+            <a href="#top" onClick={handleAnchorClick} className="brand-nowrap text-lg font-extrabold tracking-tight sm:text-xl">
               Fast<span className="text-brand-400">Match</span>
             </a>
 
             <nav className="hidden items-center gap-6 text-sm text-white/70 md:flex">
-              <a href="#how" onClick={handleAnchorClick} className="transition hover:text-white">
-                {dict.nav.how}
-              </a>
-              <a href="#why" onClick={handleAnchorClick} className="transition hover:text-white">
-                {dict.nav.why}
-              </a>
-              <a href="#cta" onClick={handleAnchorClick} className="transition hover:text-white">
-                {dict.nav.access}
-              </a>
+              <a href="#how" onClick={handleAnchorClick} className="transition hover:text-white">{dict.nav.how}</a>
+              <a href="#why" onClick={handleAnchorClick} className="transition hover:text-white">{dict.nav.why}</a>
+              <a href="#cta" onClick={handleAnchorClick} className="transition hover:text-white">{dict.nav.access}</a>
             </nav>
 
             <div className="flex items-center gap-3">
@@ -318,6 +363,7 @@ export default function HomeClient({
                   stroke="currentColor"
                   strokeWidth={1.5}
                   className="h-5 w-5"
+                  aria-hidden="true"
                 >
                   {navOpen ? (
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -334,35 +380,15 @@ export default function HomeClient({
           {navOpen && (
             <motion.div
               className="fixed inset-0 z-30 bg-base-950/95 backdrop-blur-sm md:hidden"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             >
               <motion.nav
                 className="mx-auto mt-20 flex w-full max-w-sm flex-col gap-4 px-6"
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -20, opacity: 0 }}
+                initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }}
               >
-                <a
-                  href="#how"
-                  onClick={handleAnchorClick}
-                  className={getNavLinkClass("how")}
-                >
-                  {dict.nav.how}
-                </a>
-                <a
-                  href="#why"
-                  onClick={handleAnchorClick}
-                  className={getNavLinkClass("why")}
-                >
-                  {dict.nav.why}
-                </a>
-                <a
-                  href="#cta"
-                  onClick={handleAnchorClick}
-                  className="inline-flex w-full items-center justify-center rounded-full bg-brand-500 px-5 py-3 font-semibold text-white transition hover:bg-brand-400"
-                >
+                <a href="#how" onClick={handleAnchorClick} className={getNavLinkClass("how")}>{dict.nav.how}</a>
+                <a href="#why" onClick={handleAnchorClick} className={getNavLinkClass("why")}>{dict.nav.why}</a>
+                <a href="#cta" onClick={handleAnchorClick} className="inline-flex w-full items-center justify-center rounded-full bg-brand-500 px-5 py-3 font-semibold text-white transition hover:bg-brand-400">
                   {dict.ctaBtn}
                 </a>
               </motion.nav>
@@ -374,43 +400,21 @@ export default function HomeClient({
         <section id="top" className="relative overflow-hidden">
           <div className="stars" aria-hidden="true" />
           <div className="relative mx-auto max-w-6xl px-4 pt-16 pb-20 sm:px-6 md:pt-24 md:pb-24 lg:px-8">
-            <motion.div
-              className="mx-auto max-w-3xl text-center md:mx-0 md:text-left"
-              initial="hidden"
-              animate="show"
-              variants={{ show: { transition: { staggerChildren: 0.07 } } }}
-            >
-              <motion.h1
-                className="text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl md:text-5xl lg:text-6xl"
-                variants={sectionVariants}
-              >
+            <motion.div className="mx-auto max-w-3xl text-center md:mx-0 md:text-left" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.07 } } }}>
+              <motion.h1 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl md:text-5xl lg:text-6xl" variants={sectionVariants}>
                 <AnimatedText text={dict.hero.h1a} by="words" />
                 <AnimatedText text={dict.hero.h1b} by="words" className="text-brand-400" delay={0.15} />
               </motion.h1>
 
-              <motion.p
-                className="mt-4 text-base text-white/70 sm:text-lg md:mt-5 md:text-xl"
-                variants={sectionVariants}
-              >
+              <motion.p className="mt-4 text-base text-white/70 sm:text-lg md:mt-5 md:text-xl" variants={sectionVariants}>
                 <AnimatedText text={dict.hero.p} by="words" delay={0.2} />
               </motion.p>
 
-              <motion.div
-                className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center md:justify-start"
-                variants={sectionVariants}
-              >
-                <a
-                  href="#cta"
-                  onClick={handleAnchorClick}
-                  className="inline-flex items-center justify-center rounded-full bg-brand-500 hover:bg-brand-400 px-6 py-3 font-semibold text-white transition glow"
-                >
+              <motion.div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center md:justify-start" variants={sectionVariants}>
+                <a href="#cta" onClick={handleAnchorClick} className="inline-flex items-center justify-center rounded-full bg-brand-500 hover:bg-brand-400 px-6 py-3 font-semibold text-white transition glow">
                   {dict.hero.primary}
                 </a>
-                <a
-                  href="#how"
-                  onClick={handleAnchorClick}
-                  className="inline-flex items-center justify-center rounded-full border border-white/10 px-6 py-3 font-semibold text-white/90 hover:bg-white/5"
-                >
+                <a href="#how" onClick={handleAnchorClick} className="inline-flex items-center justify-center rounded-full border border-white/10 px-6 py-3 font-semibold text-white/90 hover:bg-white/5">
                   {dict.hero.secondary}
                 </a>
               </motion.div>
@@ -418,77 +422,15 @@ export default function HomeClient({
           </div>
         </section>
 
-        {/* How */}
-        <motion.section
-          id="how"
-          className="relative"
-          variants={sectionVariants}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.2 }}
-        >
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20 lg:px-8">
-            <h2 className="text-2xl font-extrabold sm:text-3xl md:text-4xl">{dict.how.h2}</h2>
-            <p className="mt-2 max-w-2xl text-base text-white/70 sm:text-lg">{dict.how.p}</p>
+        <SourcesMarquee dict={dict} />
 
-            <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
-              {[1, 2].map((i) => (
-                <motion.div
-                  key={i}
-                  className="card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-brand-500/10"
-                  initial={cardsReveal(i).initial}
-                  whileInView={cardsReveal(i).whileInView}
-                  viewport={{ once: true, amount: 0.2 }}
-                  transition={cardsReveal(i).transition}
-                >
-                  <div className="size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4">
-                    <span className="text-2xl">{i === 1 ? "📄" : "🤖"}</span>
-                  </div>
-                  <h3 className="text-xl font-bold mb-1">{dict.how[i === 1 ? "card1t" : "card2t"]}</h3>
-                  <p className="text-white/70">{dict.how[i === 1 ? "card1p" : "card2p"]}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.section>
-
-        {/* Why */}
-        <motion.section
-          id="why"
-          className="relative"
-          variants={sectionVariants}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.2 }}
-        >
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20 lg:px-8">
-            <h2 className="text-2xl font-extrabold sm:text-3xl md:text-4xl">{dict.why.h2}</h2>
-            <p className="mt-2 text-base text-white/70 sm:text-lg">{dict.why.p}</p>
-
-            <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {["c1", "c2", "c3"].map((k, i) => (
-                <motion.div
-                  key={k}
-                  className="card rounded-2xl p-6 transition-transform duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-brand-500/10"
-                  initial={cardsReveal(i).initial}
-                  whileInView={cardsReveal(i).whileInView}
-                  viewport={{ once: true, amount: 0.2 }}
-                  transition={cardsReveal(i).transition}
-                >
-                  <div className="size-10 rounded-lg bg-brand-500/15 flex items-center justify-center mb-4">
-                    <span className="text-2xl">{i === 0 ? "⏰" : i === 1 ? "📈" : "⚡️"}</span>
-                  </div>
-                  <h3 className="text-lg font-bold mb-1">{dict.why[`${k}t` as "c1t" | "c2t" | "c3t"]}</h3>
-                  <p className="text-white/70">{dict.why[`${k}p` as "c1p" | "c2p" | "c3p"]}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.section>
+        <section className="relative transform-none">
+          <ProcessSynced steps={dict.process.steps} />
+        </section>
 
         {/* CTA */}
         <section id="cta" className="relative">
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20 lg:px-8">
+            <div className="mx-auto max-w-6xl px-4 pt-8 pb-10 sm:px-6 md:pt-10 md:pb-12 lg:px-8">
             <motion.div
               className={`rounded-3xl border border-white/10 bg-white/[.03] p-8 md:p-12 text-center ${shake ? "shake" : ""}`}
               ref={formRef}
@@ -512,71 +454,50 @@ export default function HomeClient({
                 noValidate
                 onSubmit={onSubmit}
               >
-                {/* Имя */}
-                <input
-                  type="text"
-                  name="name"
-                  placeholder={dict.cta.namePh}
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    if (nameError) setNameError(null);
-                  }}
-                  className={`w-full rounded-full bg-white/5 px-5 py-3 outline-none ring-1 ring-inset ${
-                    nameError ? "ring-red-500" : "ring-white/10"
-                  } focus:ring-brand-400 transition sm:flex-[1_1_48%]`}
-                />
-
                 {/* Специальность */}
+                <label htmlFor="specialty" className="sr-only">
+                  {dict.cta.specialtyPh}
+                </label>
                 <input
+                  id="specialty"
                   type="text"
                   name="specialty"
                   placeholder={dict.cta.specialtyPh}
                   value={specialty}
                   onChange={(e) => setSpecialty(e.target.value)}
+                  disabled={submitting}
                   className="w-full rounded-full bg-white/5 px-5 py-3 outline-none ring-1 ring-inset ring-white/10 focus:ring-brand-400 transition sm:flex-[1_1_48%]"
                 />
 
-                {/* Telegram */}
+                {/* Telegram/Instagram */}
+                <label htmlFor="contact" className="sr-only">
+                  {contactPlaceholder}
+                </label>
                 <input
+                  id="contact"
                   type="text"
-                  name="telegram"
-                  placeholder={dict.cta.telegramPh}
-                  value={telegram}
+                  name="contact"
+                  placeholder={contactPlaceholder}
+                  value={contact}
                   onChange={(e) => {
-                    setTelegram(e.target.value);
-                    if (tgError) setTgError(null);
+                    setContact(e.target.value);
+                    if (contactError) setContactError(null);
                   }}
+                  disabled={submitting}
                   className={`w-full rounded-full bg-white/5 px-5 py-3 outline-none ring-1 ring-inset ${
-                    tgError ? "ring-red-500" : "ring-white/10"
+                    contactError ? "ring-red-500" : "ring-white/10"
                   } focus:ring-brand-400 transition sm:flex-[1_1_48%]`}
                   inputMode="text"
                   autoComplete="off"
+                  aria-invalid={!!contactError}
+                  aria-describedby={contactError ? "form-error" : undefined}
                 />
 
-                {/* Email */}
-                <input
-                  ref={emailInputRef}
-                  type="email"
-                  required
-                  name="email"
-                  placeholder={dict.cta.emailPh}
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (error) clearError();
-                  }}
-                  className={`w-full rounded-full bg-white/5 px-5 py-3 outline-none ring-1 ring-inset ${
-                    error ? "ring-red-500" : "ring-white/10"
-                  } focus:ring-brand-400 transition sm:flex-[1_1_48%]`}
-                  aria-invalid={!!error}
-                  aria-describedby={error ? "email-error" : undefined}
-                />
-
+                {/* Ошибки */}
                 <div className="w-full min-h-[1.25rem] mt-1 text-center" aria-live="polite">
-                  {(nameError || tgError || error) && (
+                  {contactError && (
                     <p id="form-error" className="text-sm text-red-400" role="alert">
-                      {nameError || tgError || error}
+                      {contactError}
                     </p>
                   )}
                 </div>
@@ -590,6 +511,7 @@ export default function HomeClient({
                   {btnText}
                 </motion.button>
               </form>
+
               <p className="mt-3 text-xs text-white/50">{dict.cta.note}</p>
             </motion.div>
           </div>
@@ -608,12 +530,8 @@ export default function HomeClient({
               Fast<span className="text-brand-400">Match</span>
             </a>
             <nav className="flex flex-col gap-2 text-sm text-white/70 sm:flex-row sm:gap-6">
-              <a href="#" className="hover:text-white" onClick={(e) => e.preventDefault()}>
-                {dict.footer.privacy}
-              </a>
-              <a href="#" className="hover:text-white" onClick={(e) => e.preventDefault()}>
-                {dict.footer.contacts}
-              </a>
+              <a href="#" className="hover:text-white" onClick={(e) => e.preventDefault()}>{dict.footer.privacy}</a>
+              <a href="#" className="hover:text-white" onClick={(e) => e.preventDefault()}>{dict.footer.contacts}</a>
             </nav>
             <p className="text-xs text-white/50">{dict.footer.copyright}</p>
           </div>

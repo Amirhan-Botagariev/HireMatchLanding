@@ -2,42 +2,42 @@ import { NextRequest, NextResponse } from "next/server";
 
 function requireEnv(name: string) {
   const value = process.env[name];
-  if (!value) {
-    throw new Error(`Missing env var: ${name}`);
-  }
+  if (!value) throw new Error(`Missing env var: ${name}`);
   return value;
 }
 
 const SUPABASE_URL = requireEnv("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
 
+// простая серверная валидация contact: @handle или ссылка на t.me/instagram.com
+function isValidContact(v: unknown): v is string {
+  if (typeof v !== "string") return false;
+  const s = v.trim();
+  if (!s) return false;
+  const atHandle = /^@[A-Za-z0-9_.]{4,}$/i.test(s);
+  const url = /^https?:\/\/(t\.me|telegram\.me|instagram\.com)\/[A-Za-z0-9_.]{3,}$/i.test(s);
+  return atHandle || url;
+}
+
 export async function POST(req: NextRequest) {
   let payload: unknown;
-
   try {
     payload = await req.json();
   } catch {
-    return NextResponse.json(
-      { ok: false, error: "Invalid JSON" },
-      { status: 400 }
-    );
+    return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
   }
 
   const {
-    email,
-    name,
+    contact,
     specialty,
-    telegram,
     referrer,
     utm,
     userAgent,
     locale,
     tzOffsetMin,
   } = (payload as {
-    email?: unknown;
-    name?: unknown;
+    contact?: unknown;
     specialty?: unknown;
-    telegram?: unknown;
     referrer?: unknown;
     utm?: unknown;
     userAgent?: unknown;
@@ -45,13 +45,15 @@ export async function POST(req: NextRequest) {
     tzOffsetMin?: unknown;
   }) || {};
 
-  if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  // валидация contact
+  if (!isValidContact(contact)) {
     return NextResponse.json(
-      { ok: false, error: "Invalid email" },
+      { ok: false, error: "Invalid contact (expect @handle or link)" },
       { status: 400 }
     );
   }
 
+  // разбор UTM
   let utmParams: Record<string, string> | null = null;
   if (typeof utm === "string" && utm.trim()) {
     try {
@@ -64,22 +66,18 @@ export async function POST(req: NextRequest) {
   }
 
   const insert = {
-    email,
-    name: typeof name === "string" && name.trim() ? name.trim() : null,
+    contact: contact.trim(), // 👈 новая колонка
     specialty:
       typeof specialty === "string" && specialty.trim() ? specialty.trim() : null,
-    telegram:
-      typeof telegram === "string" && telegram.trim() ? telegram.trim() : null,
-    referrer: typeof referrer === "string" && referrer.trim() ? referrer : null,
+    referrer:
+      typeof referrer === "string" && referrer.trim() ? referrer : null,
     utm_params: utmParams,
     user_agent:
       typeof userAgent === "string" && userAgent.trim() ? userAgent : null,
     locale: typeof locale === "string" && locale.trim() ? locale : null,
     tz_offset_min:
       (typeof tzOffsetMin === "number" && Number.isFinite(tzOffsetMin)) ||
-      (typeof tzOffsetMin === "string" &&
-        tzOffsetMin.trim() !== "" &&
-        !Number.isNaN(Number(tzOffsetMin)))
+      (typeof tzOffsetMin === "string" && tzOffsetMin.trim() !== "" && !Number.isNaN(Number(tzOffsetMin)))
         ? Number(tzOffsetMin)
         : null,
   };
@@ -103,10 +101,7 @@ export async function POST(req: NextRequest) {
     }
   } catch (error) {
     console.error("Supabase request error:", error);
-    return NextResponse.json(
-      { ok: false, error: "Server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ ok: false, error: "Server error" }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true }, { status: 200 });

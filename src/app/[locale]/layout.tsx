@@ -1,3 +1,4 @@
+// src/app/[locale]/layout.tsx
 import type { Metadata, Viewport } from "next";
 import "@/app/globals.css";
 import { Analytics } from "@vercel/analytics/react";
@@ -14,22 +15,24 @@ export function generateStaticParams() {
 
 const SITE_URL = "https://fastmatch.me";
 
+// ✅ делаем async и деструктурируем params через await
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale: raw } = await params;
-  const locale = (["ru", "en", "kz"] as const).includes(raw as any) ? (raw as "ru" | "en" | "kz") : "ru";
+  const locale: Locale =
+    (["ru", "en", "kz"] as const).includes(raw as any) ? (raw as Locale) : "ru";
 
   const dict = getDictionary(locale);
-  const title = locale === "en"
-    ? "FastMatch — automate job applications with AI"
-    : locale === "kz"
-    ? "FastMatch — ЖИ көмегімен өтінімдерді автоматтандыр"
-    : "FastMatch — Автоматизация откликов для соискателей";
 
-  const description = dict.how.p;
+  const title =
+    locale === "en"
+      ? "FastMatch — automate job applications with AI"
+      : locale === "kz"
+      ? "FastMatch — ЖИ көмегімен өтінімдерді автоматтандыр"
+      : "FastMatch — Автоматизация откликов для соискателей";
 
   const hrefs = {
     ru: `${SITE_URL}/ru`,
@@ -37,10 +40,12 @@ export async function generateMetadata({
     kz: `${SITE_URL}/kz`,
   };
 
+  const ogLocale =
+    locale === "en" ? "en_US" : locale === "kz" ? "kk_KZ" : "ru_RU";
+
   return {
     metadataBase: new URL(SITE_URL),
     title,
-    description,
     alternates: {
       canonical: hrefs[locale],
       languages: {
@@ -55,14 +60,12 @@ export async function generateMetadata({
       url: `${SITE_URL}/${locale}`,
       siteName: "FastMatch",
       title,
-      description,
-      locale,
+      locale: ogLocale,
       images: [{ url: "/og.png", width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
       title,
-      description,
       images: ["/og.png"],
     },
     icons: {
@@ -72,7 +75,9 @@ export async function generateMetadata({
         { url: "/favicon.ico" },
       ],
       apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
-      other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#2f84ff" }],
+      other: [
+        { rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#2f84ff" },
+      ],
     },
     robots: {
       index: true,
@@ -89,6 +94,7 @@ function toLocale(value: string): Locale {
   return (locales as readonly string[]).includes(value) ? (value as Locale) : defaultLocale;
 }
 
+// ✅ тоже async и ждем params
 export default async function LocaleLayout({
   params,
   children,
@@ -99,7 +105,6 @@ export default async function LocaleLayout({
   const { locale: raw } = await params;
   const locale = toLocale(raw);
 
-  // JSON-LD (Organization + WebSite) — помогает сниппетам
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -113,7 +118,6 @@ export default async function LocaleLayout({
       <body className="bg-base-950 text-white antialiased">
         <script
           type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         {children}
